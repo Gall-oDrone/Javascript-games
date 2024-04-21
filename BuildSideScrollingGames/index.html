@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <canvas id="canvas1"></canvas>
+
+  <div class="controls">
+    <button id="restartButton">R</button>
+    <button id="fullScreenButton">F</button>
+    <button id="debugButton">D</button>
+  </div>
+
+  <div class="assets">
+    <img id="background" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/images/background_single.png">
+    <img id="background2" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/images/background_single2.png">
+    <img id="player_fish" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/images/player_fish.png">
+    <img id="smallGears" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/images/smallGears.png">
+    <audio id="charge" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/sounds/charge.mp3"></audio>
+    <audio id="flap1" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/sounds/flap1.mp3"></audio>
+    <audio id="flap2" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/sounds/flap2.mp3"></audio>
+    <audio id="flap3" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/sounds/flap3.mp3"></audio>
+    <audio id="flap4" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/sounds/flap4.mp3"></audio>
+    <audio id="flap5" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/sounds/flap5.mp3"></audio>
+    <audio id="win" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/sounds/win.mp3"></audio>
+    <audio id="lose" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/sounds/lose.mp3"></audio>
+  </div>
+    <script src="background.js"></script>
+    <script src="obstacle.js"></script>
+    <script src="player.js"></script>
+    <script src="main.js"></script>
+    <script src="audio.js"></script>
+</html>

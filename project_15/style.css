@@ -1,0 +1,26 @@
+:root {
+    --url: url("https://dg-game-assets.s3.amazonaws.com/javascript/physics-game-tutorial/images/background.png");
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+#canvas1 {
+    background: var(--url);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+#overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+#obstacles, #bull, #egg, #toad, #toads, #larva {
+    display: none;
+}

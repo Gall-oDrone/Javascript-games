@@ -1,0 +1,19 @@
+#canvas1 {
+    /* background: url('https://dg-game-assets.s3.amazonaws.com/javascript/tutorial_state_management_in_2d_games/images/background.png'); */
+    position: absolute;
+    border: 1px solid black;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+#info {
+    width: 100%;
+    text-align: center;
+    font: 25px Impact;
+}
+#locustmorph_large {
+    display: none;   
+}
+.hidden {
+    display: none;
+}

@@ -1,0 +1,11 @@
+#canvas1 {
+    border: 5px solid black;
+    background: url('https://dg-game-assets.s3.amazonaws.com/javascript/tutorial-javascript-2d-game/background.png');
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+#beetlemorph, #rhinomorph, #player, #player_jets, #boss {
+    display: none;
+}

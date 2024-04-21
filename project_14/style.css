@@ -1,0 +1,29 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+#canvas1 {
+    position: absolute;
+}
+
+.controls {
+    position: absolute;
+    z-index: 100;
+}
+img {
+    display: none;
+}
+
+button {
+    padding: 20px;
+    font-size: 30px;
+    margin: 20px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: white;
+    background: black;
+    transition: 0.2s;
+}
+button:hover {
+    color: black;
+    background: white;
+}

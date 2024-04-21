@@ -1,0 +1,16 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#canvas1 {
+    background-color: linear-gradient(#231646, #4d0941);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+img {
+    display: none;
+}

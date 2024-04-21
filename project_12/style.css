@@ -1,0 +1,58 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#wrapper {
+    border: 5px solid black;
+    width: 1280px;
+    height: 720px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+}
+canvas {
+    background: url('background.png')
+}
+#overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);   
+    pointer-events: none;
+}
+#leaves_left {
+    position: absolute;
+    top: 50pc;
+    left: -100px;
+    transition: 0.3s;
+    animation: wobble ease-in-out 1.5s infinite;
+    pointer-events: none;
+}
+#leaves_right {
+    position: absolute;
+    top: 50pc;
+    right: -100px;
+    transition: 0.2s;
+    animation: wobble ease-in-out 1.6s infinite;
+    pointer-events: none;
+}
+canvas:hover ~ #leaves_left {
+    left: -100px;
+    transform: rotate(15deg);
+}
+canvas:hover ~ #leaves_right {
+    left: -180px;
+    transform: rotate(15deg);
+}
+@keyframes wobble {
+    0% {top:50px;}
+    50% {top:65px;}
+    100% {top:50px;}
+}
+#owlbear, #bush, #plant, #grass {
+    display: none;
+}
