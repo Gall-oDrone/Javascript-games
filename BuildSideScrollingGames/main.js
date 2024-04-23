@@ -28,7 +28,7 @@ class Game {
         this.eventUpdate = false;
         this.touchStartX;
         this.swipeDistance = 50;
-        this.debug = true; 
+        this.debug = false; 
         this.restartButton = document.getElementById('restartButton');
         this.fullScreenButton = document.getElementById('fullScreenButton');
         this.debugButton = document.getElementById('debugButton');
@@ -53,12 +53,24 @@ class Game {
             if (e.key.toLowerCase() === 'd') this.debug = !this.debug;
         });
         this.canvas.addEventListener('mouseup', e => {
-            this.player.wingsUp();
+            setTimeout(() => {
+                this.player.wingsUp();
+            }, 50);
         })
         // touch controls
         this.canvas.addEventListener('touchstart', e => {
             this.player.flap();
             this.touchStartX = e.changedTouches[0].pageX;
+        });
+        this.canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+        })
+        this.canvas.addEventListener('touchend', e => {
+            if (e.changedTouches[0].pageX - this.touchStartX > this.swipeDistance){
+                this.player.startCharge();
+            } else {
+                this.player.flap();
+            }
         });
         this.canvas.addEventListener('touchmove', e => {
             if (e.changedTouches[0].pageX - this.touchStartX > this.swipeDistance){
