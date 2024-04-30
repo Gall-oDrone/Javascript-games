@@ -2,25 +2,31 @@ class Game {
     constructor(canvas, context){
         this.canvas = canvas;
         this.ctx = context;
-        this.width = this.canvas.width;
-        this.height = this.canvas.height;
-        this.snake = new Snake(this, 0 ,0, 1, 1);
+        this.width;
+        this.height;
         this.cellSize = 50;
-        this.columns = this.width / this.cellSize;
-        this.rows = this.height / this.cellSize;
+        this.columns;
+        this.rows;
+        
+        this.eventTimer = 0;
+        this.eventInterval = 200;
+        this.eventUpdate = false;
 
+        this.snake = new Snake(this, 0 ,0, 0, 1, 'magenta');
         window.addEventListener('resize', e => {
             this.canvas.width = e.currentTarget.innerWidth;
             this.resize(e.currentTarget.innerWidth, e.currentTarget.innerHeight);
-        })
+        });
+        this.resize(window.innerWidth, window.innerHeight);
     }
     resize(width, height){
-        this.canvas.width = Math.floor(width);
-        this.canvas.height = Math.floor(height);
+        this.canvas.width = width - width % this.cellSize;
+        this.canvas.height = height - height % this.cellSize;
         this.ctx.fillStyle = 'blue';
         this.width = this.canvas.width;
         this.height = this.canvas.height;
-        this.render();
+        this.columns = Math.floor(this.width / this.cellSize);
+        this.rows = Math.floor(this.height / this.cellSize);
     }
     drawGrid(){
         for (let y = 0; y < this.rows; y++){
@@ -29,10 +35,23 @@ class Game {
             }
         }
     }
-    render(){
-        this.drawGrid();
-        // this.snake.update();
-        // this.snake.draw();
+    handlePeriodicEvents(deltaTime){
+        if (this.eventTimer < this.eventInterval){
+            this.eventTimer += deltaTime;
+            this.eventUpdate = false;
+        } else {
+            this.eventTimer = 0;
+            this.eventUpdate = true;
+        }
+    }
+    render(deltaTime){
+        this.handlePeriodicEvents(deltaTime);
+        if (this.eventUpdate) {
+            this.ctx.clearRect(0,0,this.width,this.height);
+            this.drawGrid();
+            this.snake.draw();
+            this.snake.update();
+        }
     }
 }
 
@@ -44,9 +63,11 @@ window.addEventListener('load', function(){
 
     const game = new Game(canvas, ctx);
 
-    function animate(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        game.render();
+    let lastTime = 0;
+    function animate(timeStamp){
+        const deltaTime = timeStamp - lastTime;
+        lastTime = timeStamp;
+        game.render(deltaTime);
         requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
