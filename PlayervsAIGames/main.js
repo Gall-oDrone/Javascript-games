@@ -12,7 +12,7 @@ class Game {
         this.eventInterval = 200;
         this.eventUpdate = false;
 
-        this.snake = new Snake(this, 0 ,0, 0, 1, 'magenta');
+        this.snake = new Keyboard1(this, 0 ,0, 0, 1, 'magenta');
         window.addEventListener('resize', e => {
             this.canvas.width = e.currentTarget.innerWidth;
             this.resize(e.currentTarget.innerWidth, e.currentTarget.innerHeight);
