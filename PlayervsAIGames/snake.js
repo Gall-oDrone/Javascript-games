@@ -62,3 +62,42 @@ class Keyboard1 extends Snake {
         })
     }
 }
+
+class Keyboard2 extends Snake {
+    constructor(game, x, y, speedX, speedY, color){
+        super(game, x, y, speedX, speedY, color);
+
+        window.addEventListener('keydown', e => {
+            console.log(e);
+            if (e.key.toLowerCase() === 'w') this.turnUp();
+            else if (e.key.toLowerCase() === 's') this.turnDown();
+            else if (e.key.toLowerCase() === 'a') this.turnLeft();
+            else if (e.key.toLowerCase() === 'd') this.turnRight();
+        })
+    }
+}
+
+class ComputerAi extends Snake {
+    constructor(game, x, y, speedX, speedY, color){
+        super(game, x, y, speedX, speedY, color);
+        this.turnTimer = 0;
+        this.turnInterval = Math.floor(Math.random() * this.game.columns + 1);
+    }
+    update(){
+        super.update();
+        if (this.turnTimer < this.turnInterval){
+            this.turnTimer += 1;
+        } else {
+            this.turnTimer = 0;
+            this.turn();
+            this.turnInterval = Math.floor(Math.random() * this.game.columns + 1);
+        }
+    }
+    turn(){
+        if (this.speedY === 0){
+            Math.random() < 0.5 ? this.turnUp() : this.turnDown();
+        } else if (this.speedX === 0) {
+            Math.random() < 0.5 ? this.turnLeft() : this.turnRight();
+        }
+    }
+}
