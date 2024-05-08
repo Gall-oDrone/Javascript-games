@@ -15,6 +15,9 @@ class Game {
         this.player1;
         this.player2;
         this.player3;
+        this.player4;
+        this.food;
+
         this.gameObjects;
         window.addEventListener('resize', e => {
             this.canvas.width = e.currentTarget.innerWidth;
@@ -31,10 +34,11 @@ class Game {
         this.columns = Math.floor(this.width / this.cellSize);
         this.rows = Math.floor(this.height / this.cellSize);
         this.player1 = new Keyboard1(this, 0 ,0, 1, 0, 'orangered');
-        this.player2 = new Keyboard2(this, this.columns - 1, 0, 0, 1, 'magenta');
+        this.player2 = new ComputerAi(this, this.columns - 1, 0, 0, 1, 'magenta');
         this.player3 = new ComputerAi(this, this.columns - 1, this.rows-1, -1, 0, 'yellow');
         this.player4 = new ComputerAi(this, 0, this.rows-1, 0, -1, 'darkblue');
-        this.gameObjects = [this.player1, this.player2, this.player3, this.player4];
+        this.food = new Food(this);
+        this.gameObjects = [this.player1, this.player2, this.player3, this.player4, this.food];
     }
     drawGrid(){
         for (let y = 0; y < this.rows; y++){
@@ -42,6 +46,12 @@ class Game {
                 this.ctx.strokeRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
             }
         }
+    }
+    drawStatusText(){
+        
+    }
+    checkCollision(a,b){
+        return a.x === b.x && a.y === b.y;
     }
     handlePeriodicEvents(deltaTime){
         if (this.eventTimer < this.eventInterval){
