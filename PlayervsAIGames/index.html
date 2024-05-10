@@ -12,15 +12,28 @@
   <body>
     <canvas id="canvas1"></canvas>
 
-  <div class="controls">
-    <button id="restartButton">R</button>
-    <button id="fullScreenButton">F</button>
-    <button id="debugButton">D</button>
+  <div id="controls">
+    <div #id="buttons">
+      <button id="startButton">Start</button>
+      <button id="fullScreenButton">Full Screen</button>
+      <button id="debugButton">Debug</button>
+    </div>
+    <div id="scoreScreen">
+      <div class="left">
+        <p id="scoreBoard1">Player 1 </p>
+        <p id="scoreBoard2">Player 2 </p>
+      </div>
+      <div class="right">
+        <p id="scoreBoard3">Player 3 </p>
+        <p id="scoreBoard4">Player 4 </p>
+      </div>
+    </div>
   </div>
 
   <div class="assets">
     <img id="background" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/images/background_single.png">
   </div>
+    <script src="ui.js"></script>
     <script src="snake.js"></script>
     <script src="food.js"></script>
     <script src="main.js"></script>

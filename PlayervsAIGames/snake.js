@@ -1,5 +1,5 @@
 class Snake {
-    constructor(game, x, y, speedX, speedY, color){
+    constructor(game, x, y, speedX, speedY, color, name){
         this.game = game;
         this.x = x;
         this.y = y;
@@ -13,8 +13,10 @@ class Snake {
         this.length = 2;
         this.segments = [];
         this.readyToTurn = true;
+        this.name = name;
     }
     update(){
+        this.readyToTurn = true;
         // check collision
         if (this.game.checkCollision(this, this.game.food)){
             this.game.food.reset();
@@ -45,38 +47,42 @@ class Snake {
         })
     }
     turnUp(){
-        if (this.speedY === 0) {
+        if (this.speedY === 0 && this.readyToTurn) {
             this.speedX = 0;
             this.speedY = -1;
             this.moving = true;
+            this.readyToTurn = false;
         }
     }
     turnDown(){
-        if (this.speedY === 0) {
+        if (this.speedY === 0 && this.readyToTurn) {
             this.speedX = 0;
             this.speedY = 1;
             this.moving = true;
+            this.readyToTurn = false;
         }
     }
     turnLeft(){
-        if (this.speedX === 0){
+        if (this.speedX === 0 && this.readyToTurn){
             this.speedX = -1;
             this.speedY = 0;
             this.moving = true;
+            this.readyToTurn = false;
         }
     }
     turnRight(){
-        if (this.speedX === 0){
+        if (this.speedX === 0 && this.readyToTurn){
             this.speedX = 1;
             this.speedY = 0;
             this.moving = true;
+            this.readyToTurn = false;
         }
     }
 }
 
 class Keyboard1 extends Snake {
-    constructor(game, x, y, speedX, speedY, color){
-        super(game, x, y, speedX, speedY, color);
+    constructor(game, x, y, speedX, speedY, color, name){
+        super(game, x, y, speedX, speedY, color, name);
 
         window.addEventListener('keydown', e => {
             console.log(e);
@@ -89,8 +95,8 @@ class Keyboard1 extends Snake {
 }
 
 class Keyboard2 extends Snake {
-    constructor(game, x, y, speedX, speedY, color){
-        super(game, x, y, speedX, speedY, color);
+    constructor(game, x, y, speedX, speedY, color, name){
+        super(game, x, y, speedX, speedY, color, name);
 
         window.addEventListener('keydown', e => {
             console.log(e);
@@ -103,8 +109,8 @@ class Keyboard2 extends Snake {
 }
 
 class ComputerAi extends Snake {
-    constructor(game, x, y, speedX, speedY, color){
-        super(game, x, y, speedX, speedY, color);
+    constructor(game, x, y, speedX, speedY, color, name){
+        super(game, x, y, speedX, speedY, color, name);
         this.turnTimer = 0;
         this.turnInterval = Math.floor(Math.random() * this.game.columns + 1);
     }
