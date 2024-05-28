@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game</title>
+    <title>Battle Arena</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,11 +28,65 @@
         <p id="scoreBoard4">Player 4 </p>
       </div>
     </div>
+    <div id="gameMenu">
+        <div id="playerChoice">
+          <div class="player1">
+            <p class="playerLabel">Player 1</p>
+            <label for="player1controls">Controls:</label>
+            <select name="player1controls" id="player1controls">
+              <option value="arrows">Keyboard arrows</option>
+              <option value="ai">Computer AI</option>
+            </select>
+            <div>
+              <label for="player1name">Name:</label>
+              <input type="text" id="player1name">
+            </div>
+          </div>
+          <div class="player2">
+            <p class="playerLabel">Player 2</p>
+            <label for="player2controls">Controls:</label>
+            <select name="player2controls" id="player2controls">
+              <option value="arrows">Keyboard arrows</option>
+              <option value="ai">Computer AI</option>
+            </select>
+            <div>
+              <label for="player2name">Name:</label>
+              <input type="text" id="player2name">
+            </div>
+          </div>
+          <div class="player3">
+            <p class="playerLabel">Player 3</p>
+            <label for="player3controls">Controls:</label>
+            <select name="player3controls" id="player3controls">
+              <option value="arrows">Keyboard arrows</option>
+              <option value="ai">Computer AI</option>
+            </select>
+            <div>
+              <label for="player3name">Name:</label>
+              <input type="text" id="player3name">
+            </div>
+          </div>
+          <div class="player4">
+            <p class="playerLabel">Player 4</p>
+            <label for="player4controls">Controls:</label>
+            <select name="player4controls" id="player4controls">
+              <option value="arrows">Keyboard arrows</option>
+              <option value="ai">Computer AI</option>
+            </select>
+            <div>
+              <label for="player4name">Name:</label>
+              <input type="text" id="player4name">
+            </div>
+          </div>
+        </div>
+    </div>
   </div>
 
   <div class="assets">
     <img id="background" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/images/background_single.png">
+    <img id="forest_margin_repeat" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/forest_margin_repeat.png">
   </div>
+    <script src="background.js"></script>
     <script src="ui.js"></script>
     <script src="snake.js"></script>
     <script src="food.js"></script>

@@ -13,7 +13,16 @@
     max-height: 100%;
 }
 
+body {
+    background: black;
+}
+
+.assets {
+    display: none;
+}
+
 #controls {
+    display: none;
     position: absolute;
     top: 5px;
     left: 50%;
@@ -42,6 +51,16 @@
     justify-content: space-between;
     column-gap: 25px;
 }
+
+#playerChoice {
+    padding: 10px 5px;
+}
+
+.playerLabel {
+    font-size: 20px;
+    margin-top: 10px;
+}
+
 .assets {
     display: none;
 }
