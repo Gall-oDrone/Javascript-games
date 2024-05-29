@@ -22,7 +22,6 @@ body {
 }
 
 #controls {
-    display: none;
     position: absolute;
     top: 5px;
     left: 50%;
@@ -63,4 +62,17 @@ body {
 
 .assets {
     display: none;
+}
+
+#gameMenu {
+    display: block;
+}
+
+#gameOverScreen {
+    background: url("https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/gameOver_forest.png");
+    position:absolute;
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
