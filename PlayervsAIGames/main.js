@@ -24,6 +24,10 @@ class Game {
         this.background;
         this.gameObjects;
         this.gameUi = new Ui(this);
+
+        window.addEventListener('keyup', e => {
+            if (e.key === '-') this.toggleFullScreen();
+        })
         window.addEventListener('resize', e => {
             this.canvas.width = e.currentTarget.innerWidth;
             this.resize(e.currentTarget.innerWidth, e.currentTarget.innerHeight);
@@ -42,16 +46,40 @@ class Game {
         this.rows = Math.floor(this.height / this.cellSize);
         this.background = new Background(this);
     }
+    initPlayer1(){
+        const name = this.gameUi.player1name.value;
+        if (this.gameUi.player1controls.value === 'arrows'){
+            this.player1 = new Keyboard1(this, 0, this.topMargin, 1, 0, 'orangered', name);
+        } else {
+            this.player1 = new ComputerAi(this, 0, this.topMargin, 1, 0, 'orangered', name);
+        }
+    }
+    initPlayer2(){
+        const name = this.gameUi.player2name.value;
+        if (this.gameUi.player1controls.value === 'wsad'){
+            this.player2 = new Keyboard2(this, this.columns - 1, this.topMargin, 0, 1, 'magenta', name);
+        } else {
+            this.player2 = new ComputerAi(this, this.columns - 1, this.topMargin, 0, 1, 'magenta', name);
+        }
+    }
+    initPlayer3(){
+        const name = this.gameUi.player3name.value;
+        this.player3 = new ComputerAi(this, this.columns - 1, this.rows-1, -1, 0, 'yellow', name);
+    }
+    initPlayer4(){
+        const name = this.gameUi.player4name.value;
+        this.player4 = new ComputerAi(this, 0, this.rows-1, 0, -1, 'darkblue', name);
+    }
     start(){
         if (!this.gameOver){
             this.gameUi.triggerGameOver();
         } else {
             this.gameOver =false;
             this.gameUi.gameplayUi();
-            this.player1 = new Keyboard1(this, 0, this.topMargin, 1, 0, 'orangered', 'Diego');
-            this.player2 = new ComputerAi(this, this.columns - 1, this.topMargin, 0, 1, 'magenta', 'Player 2');
-            this.player3 = new ComputerAi(this, this.columns - 1, this.rows-1, -1, 0, 'yellow', 'Computer AI');
-            this.player4 = new ComputerAi(this, 0, this.rows-1, 0, -1, 'darkblue', 'Mr Corso');
+            this.initPlayer1();
+            this.initPlayer2();
+            this.initPlayer3();
+            this.initPlayer4();
             this.food = new Food(this);
             this.gameObjects = [this.player1, this.player2, this.player3, this.player4, this.food];
             this.ctx.clearRect(0, 0, this.width, this.height);
@@ -66,6 +94,13 @@ class Game {
     }
     checkCollision(a,b){
         return a.x === b.x && a.y === b.y;
+    }
+    toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
     }
     handlePeriodicEvents(deltaTime){
         if (this.eventTimer < this.eventInterval){

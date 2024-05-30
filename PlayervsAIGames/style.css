@@ -36,6 +36,8 @@ body {
     width: 260px;
     display: flex;
     justify-content: space-between;
+    position: relative;
+    margin: 0 auto;
 }
 #buttons button {
     width: 65px;
@@ -49,6 +51,7 @@ body {
     display: flex;
     justify-content: space-between;
     column-gap: 25px;
+    width: 260px;
 }
 
 #playerChoice {
