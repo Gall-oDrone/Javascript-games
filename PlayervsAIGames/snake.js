@@ -104,25 +104,21 @@ class Snake {
             if (segment.y < nextSegment.y){ // up
                 segment.frameX = 1;
                 segment.frameY = 2;
-
             } else if (segment.y > nextSegment.y ) { // down
                 segment.frameX = 0;
-                segment.frameY = 2;
+                segment.frameY = 4;
             } else if (segment.x < nextSegment.x) { // left
                 segment.frameX = 0;
                 segment.frameY = 0;
             } else if (segment.x > nextSegment.x) { // right
-                segment.frameX = 2;
-                segment.frameY = 1;
+                segment.frameX = 6;
+                segment.frameY = 3;
             }
         } else if (index == this.segments.length - 1) { // tail
             if (prevSegment.y < segment.y) { // up
                 segment.frameX = 1;
                 segment.frameY = 4;
             } else if (prevSegment.y > segment.y) { // down
-                segment.frameX = 1;
-                segment.frameY = 4;
-            } else if (prevSegment.y < segment.y) { // down
                 segment.frameX = 0;
                 segment.frameY = 2;
             } else if (prevSegment.x < segment.x) { // left
@@ -138,10 +134,42 @@ class Snake {
                 segment.frameX = 5;
                 segment.frameY = 3;
             } else if (prevSegment.x < segment.x && nextSegment.x > segment.x) { // horizontal left
-
-            } else {
-                segment.frameX = 6;
+                segment.frameX = 5;
+                segment.frameY = 2;
+            } else if (prevSegment.y < segment.y && nextSegment.y > segment.y) { // vertical up
+                segment.frameX = 1;
+                segment.frameY = 3;
+            } else if (nextSegment.y < segment.y && prevSegment.y > segment.y) { // vertical down
+                segment.frameX = 0;
+                segment.frameY = 3;
+            }
+            // bend counter clockwise
+            else if (prevSegment.x < segment.x && nextSegment.y > segment.y) { // up left
+                segment.frameX = 4;
                 segment.frameY = 0;
+            } else if (prevSegment.y > segment.y && nextSegment.x > segment.x) { // left down
+                segment.frameX = 3;
+                segment.frameY = 0;
+            } else if (prevSegment.x > segment.x && nextSegment.y < segment.y) { // down right
+                segment.frameX = 3;
+                segment.frameY = 1;
+            } else if (prevSegment.y < segment.y && nextSegment.x < segment.x) { // right up
+                segment.frameX = 4;
+                segment.frameY = 1;
+            }
+            // bend clockwise
+            else if (nextSegment.x < segment.x && prevSegment.y > segment.y) { // right down
+                segment.frameX = 3;
+                segment.frameY = 2;
+            } else if (nextSegment.y < segment.y && prevSegment.x < segment.x) { // down left
+                segment.frameX = 3;
+                segment.frameY = 3;
+            } else if (nextSegment.x > segment.x && prevSegment.y < segment.y) { // left up
+                segment.frameX = 2;
+                segment.frameY = 3;
+            } else if (nextSegment.y > segment.y && prevSegment.x > segment.x) { // up right
+                segment.frameX = 2;
+                segment.frameY = 2;
             }
         }
     }
