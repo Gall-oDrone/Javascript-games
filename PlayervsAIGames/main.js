@@ -35,7 +35,7 @@ class Game {
             this.resize(e.currentTarget.innerWidth, e.currentTarget.innerHeight);
         });
         this.resize(window.innerWidth, window.innerHeight);
-        this.start();
+        // this.start();
     }
     resize(width, height){
         this.canvas.width = width - width % this.cellSize;

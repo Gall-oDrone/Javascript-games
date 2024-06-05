@@ -13,13 +13,15 @@ class Snake {
         this.length = 2;
         this.segments = [];
         for (let i = 0; i < this.length; i++) {
-            this.x = this.speedX;
-            this.y = this.speedY;
+            if (i > 0) {
+                this.x = this.speedX;
+                this.y = this.speedY;
+            }
             this.segments.unshift({x: this.x, y: this.y, frameX:0, frameY:0});
         }
         this.readyToTurn = true;
         this.name = name;
-        this.image = document.getElementById('snake_corgi');
+        this.image = document.getElementById('void_wolf');
         this.spriteWidth = 200;
         this.spriteHeight = 200;
     }
@@ -49,7 +51,7 @@ class Snake {
 
         // win condition
         if (this.score >= this.game.winningScore){
-            this.game.gameUi.triggerGameOver();
+            this.game.gameUi.triggerGameOver(this);
         }
     }
     draw(){
@@ -211,19 +213,24 @@ class ComputerAi extends Snake {
     }
     update(){
         super.update();
-        if (this.turnTimer < this.turnInterval){
-            this.turnTimer += 1;
-        } else {
-            this.turnTimer = 0;
+        if (this.x === this.game.food.x && this.speedY === 0 || this.y == this.game.food.y && this.speedX === 0) {
             this.turn();
-            this.turnInterval = Math.floor(Math.random() * 8) + 1;
+        } else  {
+            if (this.turnTimer < this.turnInterval){
+                this.turnTimer += 1;
+            } else {
+                this.turnTimer = 0;
+                this.turn();
+                this.turnInterval = Math.floor(Math.random() * 8) + 5;
+            }
         }
     }
     turn(){
+        this.turnTimer = 0;
         if (this.speedY === 0){
-            Math.random() < 0.5 ? this.turnUp() : this.turnDown();
+            this.game.food.y < this.y ? this.turnUp() : this.turnDown();
         } else if (this.speedX === 0) {
-            Math.random() < 0.5 ? this.turnLeft() : this.turnRight();
+            this.game.food.x < this.x ? this.turnLeft() : this.turnRight();
         }
     }
 }

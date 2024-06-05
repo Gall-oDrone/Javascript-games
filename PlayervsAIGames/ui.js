@@ -34,6 +34,9 @@ class Ui {
         this.player2name = document.getElementById('player2name');
         this.player3name = document.getElementById('player3name');
         this.player4name = document.getElementById('player4name');
+        // messages
+        this.message1 = document.getElementById('message1');
+        this.message2 = document.getElementById('message2');
     }
     update(){
         this.scoreBoard1.innerText = this.game.player1.name + this.game.player1.score;
@@ -41,9 +44,16 @@ class Ui {
         this.scoreBoard3.innerText = this.game.player3.name + this.game.player3.score;
         this.scoreBoard4.innerText = this.game.player4.name + this.game.player4.score;
     }
-    triggerGameOver(){
+    triggerGameOver(winner){
         this.game.gameOver = true;
         this.gameOverUi();
+        if (winner) {
+            this.message1.innerText = winner.name + ' Wins!';
+            this.message2.innerText = "Winning score " + winner.score;
+        } else {
+            this.message1.innerText = 'Welcome to the battle arena';
+            this.message2.innerText = 'Choose your fighters!';
+        }
     }
     gameplayUi(){
         this.gameMenu.style.display = 'none';
