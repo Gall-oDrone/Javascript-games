@@ -50,28 +50,32 @@ class Game {
         this.background = new Background(this);
     }
     initPlayer1(){
+        const image = document.getElementById(this.gameUi.player1character.value);
         const name = this.gameUi.player1name.value;
         if (this.gameUi.player1controls.value === 'arrows'){
-            this.player1 = new Keyboard1(this, 0, this.topMargin, 1, 0, 'orangered', name);
+            this.player1 = new Keyboard1(this, 0, this.topMargin, 1, 0, 'orangered', name, image);
         } else {
-            this.player1 = new ComputerAi(this, 0, this.topMargin, 1, 0, 'orangered', name);
+            this.player1 = new ComputerAi(this, 0, this.topMargin, 1, 0, 'orangered', name, image);
         }
     }
     initPlayer2(){
+        const image = document.getElementById(this.gameUi.player2character.value);
         const name = this.gameUi.player2name.value;
         if (this.gameUi.player1controls.value === 'wsad'){
-            this.player2 = new Keyboard2(this, this.columns - 1, this.topMargin, 0, 1, 'magenta', name);
+            this.player2 = new Keyboard2(this, this.columns - 1, this.topMargin, 0, 1, 'magenta', name, image);
         } else {
-            this.player2 = new ComputerAi(this, this.columns - 1, this.topMargin, 0, 1, 'magenta', name);
+            this.player2 = new ComputerAi(this, this.columns - 1, this.topMargin, 0, 1, 'magenta', name, image);
         }
     }
     initPlayer3(){
+        const image = document.getElementById(this.gameUi.player3character.value);
         const name = this.gameUi.player3name.value;
-        this.player3 = new ComputerAi(this, this.columns - 1, this.rows-1, -1, 0, 'yellow', name);
+        this.player3 = new ComputerAi(this, this.columns - 1, this.rows-1, -1, 0, 'yellow', name, image);
     }
     initPlayer4(){
+        const image = document.getElementById(this.gameUi.player4character.value);
         const name = this.gameUi.player4name.value;
-        this.player4 = new ComputerAi(this, 0, this.rows-1, 0, -1, 'darkblue', name);
+        this.player4 = new ComputerAi(this, 0, this.rows-1, 0, -1, 'darkblue', name, image);
     }
     start(){
         if (!this.gameOver){

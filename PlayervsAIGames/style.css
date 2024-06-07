@@ -74,6 +74,14 @@ body {
     padding-top: 10px;
 }
 
+#playerChoice {
+    padding: 20px 0;
+}
+
+#playerChoice > div {
+    padding: 10px 5px;
+}
+
 #gameOverScreen {
     background: url("https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/gameOver_forest.png");
     position:absolute;

@@ -34,6 +34,11 @@ class Ui {
         this.player2name = document.getElementById('player2name');
         this.player3name = document.getElementById('player3name');
         this.player4name = document.getElementById('player4name');
+        // character
+        this.player1character = document.getElementById('player1character');
+        this.player2character = document.getElementById('player2character');
+        this.player3character = document.getElementById('player3character');
+        this.player4character = document.getElementById('player4character');
         // messages
         this.message1 = document.getElementById('message1');
         this.message2 = document.getElementById('message2');
