@@ -53,8 +53,14 @@ class Ui {
         this.game.gameOver = true;
         this.gameOverUi();
         if (winner) {
-            this.message1.innerText = winner.name + ' Wins!';
-            this.message2.innerText = "Winning score " + winner.score;
+            this.message1.innerText = winner.name + ' wins!';
+            this.message2.innerText = "Game time " + this.game.formatTimer() + ' seconds!';
+            for (let i = 0; i < this.game.numberOfParticles; i++){
+                const particle = this.game.getParticle();
+                if (particle){
+                    particle.start(Math.random() * this.game.width, this.game.height * 0.9, 'gold');
+                }
+            }
         } else {
             this.message1.innerText = 'Welcome to the battle arena';
             this.message2.innerText = 'Choose your fighters!';

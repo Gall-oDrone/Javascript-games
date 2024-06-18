@@ -29,8 +29,10 @@ class Snake {
         this.readyToTurn = true;
         // check collision
         if (this.game.checkCollision(this, this.game.food)){
+            let color;
             if (this.game.food.frameY === 1) { // not edible
                 this.score--;
+                color = 'black';
                 if (this.length > 2) {
                     this.length--;
                     if (this.segments.length > this.length) {
@@ -40,6 +42,13 @@ class Snake {
             } else { // regular food
                 this.score++;
                 this.length++;
+                color = 'gold';
+            }
+            for (let i = 0; i < 5; i++){
+                const particle = this.game.getParticle();
+                if (particle){
+                    particle.start(this.game.food.x * this.game.cellSize + this.game.cellSize * 0.5, this.game.food.y * this.game.cellSize + this.game.cellSize * 0.5, color);
+                }
             }
             this.game.food.reset();
         }
@@ -239,7 +248,10 @@ class ComputerAi extends Snake {
     constructor(game, x, y, speedX, speedY, color, name, image){
         super(game, x, y, speedX, speedY, color, name, image);
         this.turnTimer = 0;
-        this.turnInterval
+        this.turnInterval;
+        // difficulty slider
+        this.ai_difficulty = document.getElementById('ai_difficulty').value;
+        this.turnInterval = Math.floor(Math.random() * this.ai_difficulty);
     }
     update(){
         super.update();
@@ -251,7 +263,7 @@ class ComputerAi extends Snake {
             } else {
                 this.turnTimer = 0;
                 this.turn();
-                this.turnInterval = Math.floor(Math.random() * 5) + 1;
+                this.turnInterval = Math.floor(Math.random() * 5) + this.ai_difficulty;
             }
         }
     }
@@ -275,6 +287,14 @@ class ComputerAi extends Snake {
             this.turnRight();
         } else if (food.y < this.y && this.speedY === 0) {
             this.turnUp();
+        } else if (food.y > this.y && this.speedY === 0){
+            this.turnDown();
+        } else {
+            if (this.speedY === 0) {
+                Math.random() < 0.5 ? this.turnUp() : this.turnDown();
+            } else if (this.speedX === 0) {
+                Math.random() < 0.5 ? this.turnLeft() : this.turnRight();
+            }
         }
     }
 }

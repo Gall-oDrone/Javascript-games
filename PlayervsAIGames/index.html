@@ -107,9 +107,17 @@
             </select>
           </div>
         </div>
+        <label for="ai_difficulty">Difficulty:</label>
+        <select name="ai_difficulty" id="ai_difficulty">
+          <option value="40">Slow noodles</option>
+          <option value="15">Challengers</option>
+          <option value="1">Ultimate hunfer</option>
+        </select>
     </div>
   </div>
 
+  <canvas id="canvas2"></canvas>
+  
   <div class="assets">
     {% comment %} <img id="background" src="https://dg-game-assets.s3.amazonaws.com/javascript/build-side-scrolling-games-with-javascript-tutorial/images/background_single.png"> {% endcomment %}
     <img id="forest_margin_repeat" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/forest_margin_repeat_1600x600.png">
@@ -121,6 +129,7 @@
     <img id="sticky_saberhound" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/sticky_saberhound.png">
     <img id="spectral_schnoodle" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/spectral_schnoodle.png">
   </div>
+    <script src="particles.js"></script>
     <script src="background.js"></script>
     <script src="ui.js"></script>
     <script src="snake.js"></script>

@@ -1,7 +1,9 @@
 class Game {
-    constructor(canvas, context){
+    constructor(canvas, context, canvas2, context2){
         this.canvas = canvas;
         this.ctx = context;
+        this.canvas2 = canvas2;
+        this.ctx2 = context2;
         this.width;
         this.height;
         this.cellSize = 80;
@@ -12,6 +14,7 @@ class Game {
         this.eventTimer = 0;
         this.eventInterval = 200;
         this.eventUpdate = false;
+        this.timer = 0;
 
         this.gameOver = true;
         this.winningScore = 2;
@@ -25,6 +28,10 @@ class Game {
         this.gameObjects;
         this.debug = true;
         this.gameUi = new Ui(this);
+
+        this.particles = [];
+        this.numberOfParticles = 50;
+        this.createParticlePool();
 
         window.addEventListener('keyup', e => {
             if (e.key === '-') this.toggleFullScreen();
@@ -43,6 +50,11 @@ class Game {
         this.ctx.fillStyle = 'blue';
         this.ctx.font = '30px Impact';
         this.ctx.textBaseline = 'top';
+
+        this.canvas2.width = this.canvas.width;
+        this.canvas2.height = this.canvas.height;
+        this.ctx2.fillStyle = 'gold';
+        this.ctx2.linewidth = 2;
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.columns = Math.floor(this.width / this.cellSize);
@@ -82,6 +94,7 @@ class Game {
             this.gameUi.triggerGameOver();
         } else {
             this.gameOver =false;
+            this.timer = 0;
             this.gameUi.gameplayUi();
             this.initPlayer1();
             this.initPlayer2();
@@ -102,6 +115,10 @@ class Game {
     checkCollision(a,b){
         return a.x === b.x && a.y === b.y;
     }
+    formatTimer(){
+        return (this.timer * 0.001).toFixed(1);
+    }
+
     toggleFullScreen() {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen();
@@ -118,8 +135,26 @@ class Game {
             this.eventUpdate = true;
         }
     }
+    createParticlePool(){
+        for (let i = 0; i < this.numberOfParticles; i++) {
+            this.particles.push(new Particle(this));
+        }
+    }
+    getParticle(){
+        for (let i = 0; i < this.particles.length; i++){
+            if (this.particles[i].free) return this.particles[i];
+        }
+        }
+    handleParticles(){
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        for (let i = 0; i < this.particles.length; i++){
+            this.particles[i].update();
+            this.particles[i].draw();
+        }        
+    }
     render(deltaTime){
         this.handlePeriodicEvents(deltaTime);
+        if (!this.gameOver) this.timer += deltaTime;
         if (this.eventUpdate && !this.gameOver) {
             this.ctx.clearRect(0,0,this.width,this.height);
             this.background.draw();
@@ -130,6 +165,7 @@ class Game {
             });
             this.gameUi.update();
         }
+        this.handleParticles();
     }
 }
 
@@ -138,8 +174,13 @@ window.addEventListener('load', function(){
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+   
+    const canvas2 = this.document.getElementById('canvas2');
+    const ctx2 = canvas2.getContext('2d');
+    canvas2.width = window.innerWidth;
+    canvas2.height = window.innerHeight;
 
-    const game = new Game(canvas, ctx);
+    const game = new Game(canvas, ctx, canvas2, ctx2);
 
     let lastTime = 0;
     function animate(timeStamp){
