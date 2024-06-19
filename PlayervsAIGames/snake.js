@@ -29,10 +29,12 @@ class Snake {
         this.readyToTurn = true;
         // check collision
         if (this.game.checkCollision(this, this.game.food)){
+            this.game.sound.bite1.play(this.game.sound.biteSounds[Math.floor(Math.random() * this.game.sound.biteSounds.length)]);
             let color;
             if (this.game.food.frameY === 1) { // not edible
                 this.score--;
                 color = 'black';
+                this.game.sound.play(this.game.sound.bad_food);
                 if (this.length > 2) {
                     this.length--;
                     if (this.segments.length > this.length) {
@@ -71,6 +73,7 @@ class Snake {
         // win condition
         if (this.score >= this.game.winningScore){
             this.game.gameUi.triggerGameOver(this);
+            this.game.sound.play(this.game.sound.win);
         }
     }
     draw(){

@@ -18,10 +18,12 @@ class Ui {
         this.fullScreenButton = document.getElementById('fullScreenButton');
         this.fullScreenButton.addEventListener('click', () => {
             this.game.toggleFullScreen();
+            this.game.sound.play(this.game.sound.button);
         });
         this.debugButton = document.getElementById('debugButton');
         this.debugButton.addEventListener('click', () => {
             this.game.debug = !this.game.debug;
+            this.game.sound.play(this.game.sound.button);
         });
 
         // controls

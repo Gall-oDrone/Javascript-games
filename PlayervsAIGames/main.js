@@ -28,7 +28,8 @@ class Game {
         this.gameObjects;
         this.debug = true;
         this.gameUi = new Ui(this);
-
+        this.sound = new AudioControl();
+        
         this.particles = [];
         this.numberOfParticles = 50;
         this.createParticlePool();
@@ -92,7 +93,9 @@ class Game {
     start(){
         if (!this.gameOver){
             this.gameUi.triggerGameOver();
+            this.sound.play(this.sound.restart);
         } else {
+            this.sound.play(this.sound.start);
             this.gameOver =false;
             this.timer = 0;
             this.gameUi.gameplayUi();
@@ -146,7 +149,7 @@ class Game {
         }
         }
     handleParticles(){
-        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.ctx2.clearRect(0, 0, this.width, this.height);
         for (let i = 0; i < this.particles.length; i++){
             this.particles[i].update();
             this.particles[i].draw();
