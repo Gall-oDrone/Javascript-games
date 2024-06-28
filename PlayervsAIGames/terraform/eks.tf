@@ -137,6 +137,79 @@ module "eks" {
       })
     }
 
+    # T2 node group creation can take upto 6 mins
+    t2-2xl-ng1 = {
+      name        = "t2-2xl-ng1"
+      description = "T2 2xlarge node group for hosting simple workloads"
+      # All trn1 instances should be launched into the same subnet in the preferred trn1 AZ
+      # The preferred AZ is the first AZ listed in the AZ id <-> region mapping in main.tf.
+      # We use index 2 to select the subnet in AZ1 with the 100.x CIDR:
+      #   module.vpc.private_subnets = [AZ1_10.x, AZ2_10.x, AZ1_100.x, AZ2_100.x]
+      subnet_ids = [module.vpc.private_subnets[2]]
+      # aws ssm get-parameters --names /aws/service/eks/optimized-ami/1.27/amazon-linux-2-gpu/recommended/image_id --region us-west-2
+       ami_id   = "ami-01572eda7c4411960" # Use this to pass custom AMI ID and ignore ami_type
+      #ami_type       = "AL2_x86_64_GPU" # Contains Neuron driver
+      instance_types = ["t2.2xl"]
+
+      pre_bootstrap_user_data = <<-EOT
+        cat <<-EOF > /etc/profile.d/bootstrap.sh
+        #!/bin/sh
+
+        # Clone Git Repository
+        git clone https://github.com/Gall-oDrone/Javascript-games.git
+
+      # Optional - Post bootstrap data to verify anything
+      post_bootstrap_user_data = <<-EOT
+        echo "Bootstrap complete. Ready to Go!"
+      EOT
+
+      min_size     = var.t2_2xl_min_size
+      max_size     = 4
+      desired_size = var.t2_2xl_desired_size
+
+      # EFA Network Interfaces configuration for t2.2xlarge
+      network_interfaces = [
+        {
+          description                 = "NetworkInterfaces Configuration For EFA and EKS"
+          delete_on_termination       = true
+          device_index                = 0
+          network_card_index          = 0
+          associate_public_ip_address = false
+          interface_type              = "efa"
+        },
+        {
+          description                 = "NetworkInterfaces Configuration For EFA and EKS"
+          delete_on_termination       = true
+          device_index                = 1
+          network_card_index          = 1
+          associate_public_ip_address = false
+          interface_type              = "efa"
+        }
+      ]
+
+      # Commented to investigate further as the node group creation is failing with placement group
+      # placement = {
+      #   spread_domain = "cluster"
+      #   groupName     = "trn1-32xl-ng1"
+      # }
+
+      labels = {
+        instance-type = "t2-2xl"
+        provisioner   = "simepl-game-cluster"
+      }
+
+      taints = [
+        {
+          key    = "aws.amazon.com/neuron",
+          value  = true,
+          effect = "NO_SCHEDULE"
+        }
+      ]
+
+      tags = merge(local.tags, {
+        Name = "t2-2xl-ng1",
+      })
+    }
     # Trainium node group creation can take upto 6 mins
     trn1-32xl-ng1 = {
       name        = "trn1-32xl-ng1"

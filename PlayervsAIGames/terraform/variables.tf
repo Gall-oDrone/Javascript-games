@@ -1,58 +1,7 @@
-variable "aws_region" {
-  description = "The AWS region to deploy resources in"
-  type        = string
-  default     = "us-west-2"
-}
-
-variable "cluster_name" {
-  description = "The name of the EKS cluster"
-  type        = string
-  default     = "Javascript-Game"
-}
-
-variable "node_group_name" {
-  description = "The name of the node group"
-  type        = string
-  default     = "Javascript-Game-NG"
-}
-
-variable "desired_capacity" {
-  description = "The desired number of nodes"
-  type        = number
-  default     = 2
-}
-
-variable "max_capacity" {
-  description = "The maximum number of nodes"
-  type        = number
-  default     = 3
-}
-
-variable "min_capacity" {
-  description = "The minimum number of nodes"
-  type        = number
-  default     = 1
-}
-
 variable "service_name" {
   description = "The name of the Kubernetes service"
   type        = string
   default     = "test-KS"
-}
-
-# VPC with 2046 IPs (10.1.0.0/21) and 2 AZs
-variable "vpc_cidr" {
-  description = "VPC CIDR. This should be a valid private (RFC 1918) CIDR range"
-  type        = string
-  default     = "10.1.0.0/21"
-}
-
-# RFC6598 range 100.64.0.0/10
-# Note you can only /16 range to VPC. You can add multiples of /16 if required
-variable "secondary_cidr_blocks" {
-  description = "Secondary CIDR blocks to be attached to VPC"
-  type        = list(string)
-  default     = ["100.64.0.0/16"]
 }
 
 variable "name" {
@@ -126,17 +75,18 @@ variable "enable_fsx_for_lustre" {
   default     = false
 }
 
-variable "trn1_32xl_min_size" {
-  description = "trn1 Worker node minimum size"
+variable "t2_2xl_min_size" {
+  description = "t2 Worker node minimum size"
   type        = number
-  default     = 0
+  default     = 1
 }
 
-variable "trn1_32xl_desired_size" {
-  description = "trn1 Worker node desired size"
+variable "t2_2xl_desired_size" {
+  description = "t2 Worker node desired size"
   type        = number
-  default     = 0
+  default     = 1
 }
+
 
 variable "trn1n_32xl_min_size" {
   description = "Worker node minimum size"
@@ -177,7 +127,7 @@ variable "inf2_48xl_desired_size" {
 variable "enable_kuberay_operator" {
   description = "Flag to enable kuberay operator"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "aws_auth_roles" {
