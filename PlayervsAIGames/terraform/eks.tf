@@ -177,14 +177,6 @@ module "eks" {
           associate_public_ip_address = false
           interface_type              = "efa"
         },
-        {
-          description                 = "NetworkInterfaces Configuration For EFA and EKS"
-          delete_on_termination       = true
-          device_index                = 1
-          network_card_index          = 1
-          associate_public_ip_address = false
-          interface_type              = "efa"
-        }
       ]
 
       # Commented to investigate further as the node group creation is failing with placement group
@@ -271,62 +263,6 @@ module "eks" {
           associate_public_ip_address = false
           interface_type              = "efa"
         },
-        {
-          description                 = "NetworkInterfaces Configuration For EFA and EKS"
-          delete_on_termination       = true
-          device_index                = 1
-          network_card_index          = 1
-          associate_public_ip_address = false
-          interface_type              = "efa"
-        },
-        {
-          description                 = "NetworkInterfaces Configuration For EFA and EKS"
-          delete_on_termination       = true
-          device_index                = 1
-          network_card_index          = 2
-          associate_public_ip_address = false
-          interface_type              = "efa"
-        },
-        {
-          description                 = "NetworkInterfaces Configuration For EFA and EKS"
-          delete_on_termination       = true
-          device_index                = 1
-          network_card_index          = 3
-          associate_public_ip_address = false
-          interface_type              = "efa"
-        },
-        {
-          description                 = "NetworkInterfaces Configuration For EFA and EKS"
-          delete_on_termination       = true
-          device_index                = 1
-          network_card_index          = 4
-          associate_public_ip_address = false
-          interface_type              = "efa"
-        },
-        {
-          description                 = "NetworkInterfaces Configuration For EFA and EKS"
-          delete_on_termination       = true
-          device_index                = 1
-          network_card_index          = 5
-          associate_public_ip_address = false
-          interface_type              = "efa"
-        },
-        {
-          description                 = "NetworkInterfaces Configuration For EFA and EKS"
-          delete_on_termination       = true
-          device_index                = 1
-          network_card_index          = 6
-          associate_public_ip_address = false
-          interface_type              = "efa"
-        },
-        {
-          description                 = "NetworkInterfaces Configuration For EFA and EKS"
-          delete_on_termination       = true
-          device_index                = 1
-          network_card_index          = 7
-          associate_public_ip_address = false
-          interface_type              = "efa"
-        }
       ]
 
       # Commented to investigate further as the node group creation is failing with placement group
