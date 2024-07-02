@@ -138,18 +138,18 @@ module "eks" {
     }
 
     # T2 node group creation can take upto 6 mins
-    t2-2xl-ng1 = {
-      name        = "t2-2xl-ng1"
-      description = "T2 2xlarge node group for hosting simple workloads"
+    t3-2xl-ng1 = {
+      name        = "t3-2xl-ng1"
+      description = "T3 2xlarge node group for hosting simple workloads"
       # All trn1 instances should be launched into the same subnet in the preferred trn1 AZ
       # The preferred AZ is the first AZ listed in the AZ id <-> region mapping in main.tf.
       # We use index 2 to select the subnet in AZ1 with the 100.x CIDR:
       #   module.vpc.private_subnets = [AZ1_10.x, AZ2_10.x, AZ1_100.x, AZ2_100.x]
       subnet_ids = [module.vpc.private_subnets[2]]
       # aws ssm get-parameters --names /aws/service/eks/optimized-ami/1.27/amazon-linux-2-gpu/recommended/image_id --region us-west-2
-       ami_id   = "ami-01572eda7c4411960" # Use this to pass custom AMI ID and ignore ami_type
+      ami_id   = "ami-0604d81f2fd264c7b" # Use this to pass custom AMI ID and ignore ami_type
       #ami_type       = "AL2_x86_64_GPU" # Contains Neuron driver
-      instance_types = ["t2.2xl"]
+      instance_types = ["t3.2xlarge"]
 
       pre_bootstrap_user_data = <<-EOT
         cat <<-EOF > /etc/profile.d/bootstrap.sh
@@ -163,9 +163,9 @@ module "eks" {
         echo "Bootstrap complete. Ready to Go!"
       EOT
 
-      min_size     = var.t2_2xl_min_size
+      min_size     = var.t3_2xl_min_size
       max_size     = 4
-      desired_size = var.t2_2xl_desired_size
+      desired_size = var.t3_2xl_desired_size
 
       # EFA Network Interfaces configuration for t2.2xlarge
       network_interfaces = [
@@ -194,7 +194,7 @@ module "eks" {
       # }
 
       labels = {
-        instance-type = "t2-2xl"
+        instance-type = "t3-2xl"
         provisioner   = "simepl-game-cluster"
       }
 
@@ -207,7 +207,7 @@ module "eks" {
       ]
 
       tags = merge(local.tags, {
-        Name = "t2-2xl-ng1",
+        Name = "t3-2xl-ng1",
       })
     }
     # Trainium node group creation can take upto 6 mins

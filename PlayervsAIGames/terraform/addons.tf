@@ -92,20 +92,11 @@ module "eks_blueprints_addons" {
   #   Further tuning for CoreDNS is to leverage NodeLocal DNSCache -> https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/
   #---------------------------------------------------------------
   enable_cluster_proportional_autoscaler = false
-  cluster_proportional_autoscaler = {
-    values = [templatefile("${path.module}/helm-values/coredns-autoscaler-values.yaml", {
-      target = "deployment/coredns"
-    })]
-    description = "Cluster Proportional Autoscaler for CoreDNS Service"
-  }
 
   #---------------------------------------
   # Metrics Server
   #---------------------------------------
   enable_metrics_server = false
-  metrics_server = {
-    values = [templatefile("${path.module}/helm-values/metrics-server-values.yaml", {})]
-  }
 
   #---------------------------------------
   # Cluster Autoscaler
@@ -147,9 +138,6 @@ module "eks_blueprints_addons" {
   # CloudWatch metrics for EKS
   #---------------------------------------
   enable_aws_cloudwatch_metrics = true
-  aws_cloudwatch_metrics = {
-    values = [templatefile("${path.module}/helm-values/aws-cloudwatch-metrics-values.yaml", {})]
-  }
 
   #---------------------------------------
   # Enable FSx for Lustre CSI Driver
@@ -170,23 +158,6 @@ module "eks_blueprints_addons" {
   # AWS for FluentBit - DaemonSet
   #---------------------------------------
   enable_aws_for_fluentbit = false
-  aws_for_fluentbit_cw_log_group = {
-    use_name_prefix   = false
-    name              = "/${local.name}/aws-fluentbit-logs" # Add-on creates this log group
-    retention_in_days = 30
-  }
-  aws_for_fluentbit = {
-    s3_bucket_arns = [
-      module.s3_bucket.s3_bucket_arn,
-      "${module.s3_bucket.s3_bucket_arn}/*"
-    ]
-    values = [templatefile("${path.module}/helm-values/aws-for-fluentbit-values.yaml", {
-      region               = local.region,
-      cloudwatch_log_group = "/${local.name}/aws-fluentbit-logs"
-      s3_bucket_name       = module.s3_bucket.s3_bucket_id
-      cluster_name         = module.eks.cluster_name
-    })]
-  }
 
   #---------------------------------------
   # Prommetheus and Grafana stack
@@ -198,25 +169,6 @@ module "eks_blueprints_addons" {
   #---------------------------------------------------------------
   enable_kube_prometheus_stack = false
   kube_prometheus_stack = {
-    values = [
-      var.enable_amazon_prometheus ? templatefile("${path.module}/helm-values/kube-prometheus-amp-enable.yaml", {
-        storage_class_type  = kubernetes_storage_class_v1.default_gp3.id
-        region              = local.region
-        amp_sa              = local.amp_ingest_service_account
-        amp_irsa            = module.amp_ingest_irsa[0].iam_role_arn
-        amp_remotewrite_url = "https://aps-workspaces.${local.region}.amazonaws.com/workspaces/${aws_prometheus_workspace.amp[0].id}/api/v1/remote_write"
-        amp_url             = "https://aps-workspaces.${local.region}.amazonaws.com/workspaces/${aws_prometheus_workspace.amp[0].id}"
-        }) : templatefile("${path.module}/helm-values/kube-prometheus.yaml", {
-        storage_class_type = kubernetes_storage_class_v1.default_gp3.id
-      })
-    ]
-    chart_version = "48.1.1"
-    set_sensitive = [
-      {
-        name  = "grafana.adminPassword"
-        value = data.aws_secretsmanager_secret_version.admin_password_version.secret_string
-      }
-    ],
   }
 
   #---------------------------------------
@@ -283,13 +235,6 @@ module "eks_data_addons" {
   # JupyterHub Addon
   #---------------------------------------
   enable_jupyterhub = var.enable_jupyterhub
-  jupyterhub_helm_config = {
-    values = [
-      templatefile("${path.module}/helm-values/jupyterhub-values.yaml", {
-        jupyter_single_user_sa_name = "${module.eks.cluster_name}-jupyterhub-single-user"
-      })
-    ]
-  }
 
   #---------------------------------------
   # Deploying Karpenter resources(Nodepool and NodeClass) with Helm Chart
