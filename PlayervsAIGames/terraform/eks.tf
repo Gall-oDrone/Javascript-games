@@ -175,7 +175,7 @@ module "eks" {
           device_index                = 0
           network_card_index          = 0
           associate_public_ip_address = false
-          interface_type              = "efa"
+          interface_type              = "interface"
         },
       ]
 

@@ -96,7 +96,10 @@ module "eks_blueprints_addons" {
   #---------------------------------------
   # Metrics Server
   #---------------------------------------
-  enable_metrics_server = false
+  enable_metrics_server = true
+  metrics_server = {
+    values = [templatefile("${path.module}/helm-values/metrics-server-values.yaml", {})]
+  }
 
   #---------------------------------------
   # Cluster Autoscaler
@@ -138,6 +141,9 @@ module "eks_blueprints_addons" {
   # CloudWatch metrics for EKS
   #---------------------------------------
   enable_aws_cloudwatch_metrics = true
+  aws_cloudwatch_metrics = {
+    values = [templatefile("${path.module}/helm-values/aws-cloudwatch-metrics-values.yaml", {})]
+  }
 
   #---------------------------------------
   # Enable FSx for Lustre CSI Driver
@@ -157,7 +163,24 @@ module "eks_blueprints_addons" {
   #---------------------------------------
   # AWS for FluentBit - DaemonSet
   #---------------------------------------
-  enable_aws_for_fluentbit = false
+  enable_aws_for_fluentbit = true
+  aws_for_fluentbit_cw_log_group = {
+    use_name_prefix   = false
+    name              = "/${local.name}/aws-fluentbit-logs" # Add-on creates this log group
+    retention_in_days = 30
+  }
+  aws_for_fluentbit = {
+    s3_bucket_arns = [
+      module.s3_bucket.s3_bucket_arn,
+      "${module.s3_bucket.s3_bucket_arn}/*"
+    ]
+    values = [templatefile("${path.module}/helm-values/aws-for-fluentbit-values.yaml", {
+      region               = local.region,
+      cloudwatch_log_group = "/${local.name}/aws-fluentbit-logs"
+      s3_bucket_name       = module.s3_bucket.s3_bucket_id
+      cluster_name         = module.eks.cluster_name
+    })]
+  }
 
   #---------------------------------------
   # Prommetheus and Grafana stack
