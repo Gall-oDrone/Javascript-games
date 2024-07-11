@@ -78,13 +78,13 @@ variable "enable_fsx_for_lustre" {
 variable "t3_2xl_min_size" {
   description = "t2 Worker node minimum size"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "t3_2xl_desired_size" {
   description = "t2 Worker node desired size"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 

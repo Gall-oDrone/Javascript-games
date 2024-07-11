@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Battle Arena</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <canvas id="canvas1"></canvas>
+    
+    <div id="gameOverScreen"></div>
+  <div id="controls">
+    <div #id="buttons">
+      <button id="startButton">Start</button>
+      <button id="fullScreenButton">Full Screen</button>
+      <button id="debugButton">Debug</button>
+    </div>
+    <div id="scoreScreen">
+      <div class="left">
+        <p id="scoreBoard1">Player 1 </p>
+        <p id="scoreBoard2">Player 2 </p>
+      </div>
+      <div class="right">
+        <p id="scoreBoard3">Player 3 </p>
+        <p id="scoreBoard4">Player 4 </p>
+      </div>
+    </div>
+    <div id="gameMenu">
+        <div id="message1">Welcome to the battle arena!</div>
+        <div id="message2">Choose your figthers!</div>
+        <div id="playerChoice">
+          <div class="player1">
+            <label for="player1character">Player 1</label>
+            <select name="player1character" id="player1character">
+              <option value="snake_corgi">Snake Corgi</option>
+              <option value="spectral_schnoodle">Spectral Schnoodle</option>
+              <option value="void_wolf">Void Wolf</option>
+              <option value="sticky_saberhound" selected>Sticky Saberhound</option>
+            </select>
+            <div>
+              <label for="player1name">Name:</label>
+              <input type="text" id="player1name" value="P1">
+            </div>
+            <label for="player1controls">Controls:</label>
+            <select name="player1controls" id="player1controls">
+              <option value="arrows">Keyboard arrows</option>
+              <option value="ai">Computer AI</option>
+            </select>
+            
+          </div>
+          <div class="player2">
+            <label for="player2character">Player 2</label>
+            <select name="player2character" id="player2character">
+              <option value="snake_corgi">Snake Corgi</option>
+              <option value="spectral_schnoodle">Spectral Schnoodle</option>
+              <option value="void_wolf" selected>Void Wolf</option>
+              <option value="sticky_saberhound">Sticky Saberhound</option>
+            </select>
+            <div>
+              <label for="player2name">Name:</label>
+              <input type="text" id="player2name" value="P2">
+            </div>
+            <label for="player2controls">Controls:</label>
+            <select name="player2controls" id="player2controls">
+              <option value="wsad">Keyboard WSAD</option>
+              <option value="ai">Computer AI</option>
+            </select>
+          </div>
+          <div class="player3">
+            <label for="player3character">Player 3</label>
+            <select name="player3character" id="player3character">
+              <option value="snake_corgi">Snake Corgi</option>
+              <option value="spectral_schnoodle" selected>Spectral Schnoodle</option>
+              <option value="void_wolf">Void Wolf</option>
+              <option value="sticky_saberhound">Sticky Saberhound</option>
+            </select>
+            <div>
+              <label for="player3name">Name:</label>
+              <input type="text" id="player3name" value="P3">
+            </div>
+            <label for="player3controls">Controls:</label>
+            <select name="player3controls" id="player3controls">
+              <option value="arrows">Keyboard arrows</option>
+              <option value="ai">Computer AI</option>
+            </select>
+          </div>
+          <div class="player4">
+            <label for="player4character">Player 4</label>
+            <select name="player4character" id="player4character">
+              <option value="snake_corgi" selected>Snake Corgi</option>
+              <option value="spectral_schnoodle">Spectral Schnoodle</option>
+              <option value="void_wolf">Void Wolf</option>
+              <option value="sticky_saberhound">Sticky Saberhound</option>
+            </select>
+            <div>
+              <label for="player4name">Name:</label>
+              <input type="text" id="player4name" value="P4">
+            </div>
+            <label for="player4controls">Controls:</label>
+            <select name="player4controls" id="player4controls">
+              <option value="arrows">Keyboard arrows</option>
+              <option value="ai">Computer AI</option>
+            </select>
+          </div>
+        </div>
+        <label for="ai_difficulty">Difficulty:</label>
+        <select name="ai_difficulty" id="ai_difficulty">
+          <option value="40">Slow noodles</option>
+          <option value="15">Challengers</option>
+          <option value="1">Ultimate hunfer</option>
+        </select>
+    </div>
+  </div>
+
+  <canvas id="canvas2"></canvas>
+  
+  <div class="assets">
+    <!-- food -->
+    <img id="forest_margin_repeat" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/forest_margin_repeat_1600x600.png">
+    <img id="magic_berry1" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/magic_berry1.png">
+    <img id="mushroom_sprite" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/mushroom_sprite.png">
+    <img id="food" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/food.png">
+    <!-- snakes -->
+    <img id="snake_corgi" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/snake_corgi.png">
+    <img id="void_wolf" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/void_wolf.png">
+    <img id="sticky_saberhound" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/sticky_saberhound.png">
+    <img id="spectral_schnoodle" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/spectral_schnoodle.png">
+    <!-- sounds -->
+    <audio id="bite1" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/bite1.mp3"></audio>
+    <audio id="bite2" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/bite2.mp3"></audio>
+    <audio id="bite3" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/bite3.mp3"></audio>
+    <audio id="bite4" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/bite4.mp3"></audio>
+    <audio id="bite5" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/bite5.mp3"></audio>
+    <audio id="bad_food" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/bad_food.mp3"></audio>
+    <audio id="start" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/start.mp3"></audio>
+    <audio id="restart" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/restart.mp3"></audio>
+    <audio id="win" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/win.mp3"></audio>
+    <audio id="button" src="https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/sounds/button.mp3"></audio>
+  </div>
+    <script src="sounds.js"></script>
+    <script src="particles.js"></script>
+    <script src="background.js"></script>
+    <script src="ui.js"></script>
+    <script src="snake.js"></script>
+    <script src="food.js"></script>
+    <script src="main.js"></script>
+</html>

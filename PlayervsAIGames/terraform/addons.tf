@@ -124,8 +124,8 @@ module "eks_blueprints_addons" {
   #---------------------------------------
   # Karpenter Autoscaler for EKS Cluster
   #---------------------------------------
-  enable_karpenter                  = false
-  karpenter_enable_spot_termination = false
+  enable_karpenter                  = true
+  karpenter_enable_spot_termination = true
   karpenter_node = {
     iam_role_additional_policies = {
       AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -230,8 +230,8 @@ module "eks_data_addons" {
 
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  enable_aws_neuron_device_plugin  = true
-  enable_aws_efa_k8s_device_plugin = true
+  enable_aws_neuron_device_plugin  = false
+  enable_aws_efa_k8s_device_plugin = false
 
   #---------------------------------------
   # Volcano Scheduler for TorchX used in BERT-Large distributed training example
@@ -287,12 +287,12 @@ module "eks_data_addons" {
           deleteOnTermination: true
       nodePool:
         labels:
-          - instanceType: inferentia-inf2
+          - instanceType: t3-2xlarge
           - provisionerType: Karpenter
           - hub.jupyter.org/node-purpose: user
         taints:
           - key: aws.amazon.com/neuron
-            value: "true"
+            value: "false"
             effect: "NoSchedule"
           - key: hub.jupyter.org/dedicated # According to optimization docs https://z2jh.jupyter.org/en/latest/administrator/optimization.html
             operator: "Equal"
@@ -301,7 +301,7 @@ module "eks_data_addons" {
         requirements:
           - key: "karpenter.k8s.aws/instance-family"
             operator: In
-            values: ["inf2"]
+            values: ["t3"]
           - key: "kubernetes.io/arch"
             operator: In
             values: ["amd64"]
