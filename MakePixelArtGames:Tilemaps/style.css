@@ -3,109 +3,29 @@
     padding: 0;
     box-sizing: border-box;
 }
-#canvas1 {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    background: url("https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/grass_night.png");
-    max-width: 100%;
-    max-height: 100%;
-}
-
-#canvas2 {
-    position: absolute;
-    max-width: 100%;
-    max-height: 100%;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    pointer-events: none;
-}
-
-body {
-    background: black;
-}
-
-.assets {
-    display: none;
-}
 
 #controls {
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    translate: -50% 0;
+    display: flex;
+    justify-content: space-around;
     padding: 10px;
-    background: black;
-    color: white;
-    font: 15px Consolas;
 }
 
-#buttons {
-    width: 260px;
-    display: flex;
-    justify-content: space-between;
+#controls > button {
+    padding: 5px 8px;
+}
+
+#canvas {
+    background-color: blue;
     position: relative;
-    margin: 0 auto;
+    top: 50%;
+    left: 50%;
+    translate: -50% 0%;
+    height: 320px;
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
 }
-#buttons button {
-    width: 65px;
-    background: black;
-    color: white;
-    font: 15px Consolas;
-}
-
-#scoreScreen {
-    padding: 5px;
-    display: flex;
-    justify-content: space-between;
-    column-gap: 25px;
-    width: 300px;
-    border: 1px solid white;
-    margin: 0 auto;
-}
-
-#playerChoice {
-    padding: 10px 5px;
-}
-
-.playerLabel {
-    font-size: 20px;
-    margin-top: 10px;
-}
-
-.assets {
-    display: none;
-}
-
-#gameMenu {
-    display: block;
-    padding-top: 10px;
-}
-
-#playerChoice {
-    padding: 20px 0;
-}
-
-#playerChoice > div {
-    padding: 10px 5px;
-}
-
-#gameOverScreen {
-    background: url("https://dg-game-assets.s3.amazonaws.com/javascript/player-vs-ai-games-tutorial/images/gameOver_forest.png");
-    position:absolute;
-    width: 100%;
-    height: 100%;
-    background-repeat: no-repeat;
-    background-size: cover;
-}
-
-#message1 {
-    font-size: 30px;
-    text-align: center;
-}
-#message2 {
-    font-size: 20px;
-    text-align: center;
+#tilemap {
+    display:none;
 }
