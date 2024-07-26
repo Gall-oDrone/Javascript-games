@@ -34,7 +34,7 @@ class Game {
     drawLayer(layer, ctx){
         const startCol = Math.floor(this.camera.x / this.map.tileSize);
         const endCol = startCol + (this.camera.width / this.map.tileSize);
-        const startRow = Matth.floor(this.camera.y / this.map.tileSize);
+        const startRow = Math.floor(this.camera.y / this.map.tileSize);
         const endRow = startRow + (this.camera.height / this.map.tileSize);
         const offsetX = -this.camera.x + startCol * this.map.tileSize;
         const offsetY = -this.camera.y + startRow * this.map.tileSize;
