@@ -8,7 +8,7 @@ export class GameObject {
         scale
     }){
         this.game = game;
-        this.sprite = sprite ?? {x:0,y:0,width:TILE_SIZE,height:TILE_SIZE,image:""};
+        this.sprite = sprite ?? {image:"",x:0,y:0,width:TILE_SIZE,height:TILE_SIZE,image:""};
         this.position = position ?? {x:0,y:0};
         this.scale = scale ?? 1;
 
@@ -41,8 +41,20 @@ export class GameObject {
         return distance;
     }
     draw(ctx){
+        ctx.fillStyle = 'blue';
         ctx.fillRect(
             this.position.x,
+            this.position.y,
+            TILE_SIZE,
+            TILE_SIZE
+        )
+        ctx.drawImage(
+            this.sprite.image, 
+            this.sprite.x,
+            this.sprite.y,
+            this.sprite.width,
+            this.sprite.height,
+            this.position.x, 
             this.position.y,
             TILE_SIZE,
             TILE_SIZE
