@@ -16,6 +16,7 @@ export class World{
         ctx.drawImage(this.level1.foregroundLayer,0,0)
     }
     drawGrid(ctx){
+        ctx.strokeStyle = 'black';
         for (let row = 0; row < ROWS; row++){
             for (let col = 0; col < COLS; col++){
                 ctx.strokeRect(
