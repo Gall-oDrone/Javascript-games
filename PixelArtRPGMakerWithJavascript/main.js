@@ -30,18 +30,24 @@ window.addEventListener('load', function(){
                 position: {x: 1 * TILE_SIZE, y: 2 * TILE_SIZE},
                 scale: 1,
             });
-            this.input = new Input();
+            this.input = new Input(this);
 
             this.eventUpdate = false;
             this.eventTimer = 0;
-            this.eventInterval = 200;
+            this.eventInterval = 60;
+
+            this.debug = false;
+        }
+        toggleDebug(){
+            this.debug = !this.debug;
         }
         render(ctx, deltaTime) {
             this.hero.update(deltaTime);
             this.world.drawBackground(ctx);
-            this.world.drawGrid(ctx);
+            if (this.debug) this.world.drawGrid(ctx);
             this.hero.draw(ctx);
             this.world.drawForeground(ctx);
+            if (this.debug) this.world.drawCollisionMap(ctx);
 
             if (this.eventTimer < this.eventInterval) {
                 this.eventTimer += deltaTime;
