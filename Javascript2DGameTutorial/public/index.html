@@ -3,15 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Space Invaders</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Space Invaders with AI Agent</title>
+    <link rel="stylesheet" href="../src/css/game.css" />
   </head>
   <body>
     <canvas id="canvas1"></canvas>
+    <div style="position: absolute; top: 10px; right: 10px; color: white; font-family: Arial; font-size: 12px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;">
+      <h3>Controls:</h3>
+      <p>Arrow Keys: Move</p>
+      <p>1: Shoot</p>
+      <p>2: Small Laser</p>
+      <p>3: Big Laser</p>
+      <p>R: Restart</p>
+      <h3>AI Agent:</h3>
+      <p>A: Toggle AI Mode</p>
+      <p>D: Change AI Difficulty</p>
+    </div>
+    
+    <!-- Game Assets -->
     <img src="https://dg-game-assets.s3.amazonaws.com/javascript/tutorial-javascript-2d-game/beetlemorph.png" id="beetlemorph">
     <img src="https://dg-game-assets.s3.amazonaws.com/javascript/tutorial-javascript-2d-game/rhinomorph.png" id="rhinomorph">
     <img src="https://dg-game-assets.s3.amazonaws.com/javascript/tutorial-javascript-2d-game/player.png" id="player">
     <img src="https://dg-game-assets.s3.amazonaws.com/javascript/tutorial-javascript-2d-game/player_jets.png" id="player_jets">
     <img src="https://dg-game-assets.s3.amazonaws.com/javascript/tutorial-javascript-2d-game/boss.png" id="boss">
-    <script src="script.js"></script>
+    
+    <!-- Main Game Script (ES6 Module) -->
+    <script type="module" src="../src/js/main.js"></script>
 </html>

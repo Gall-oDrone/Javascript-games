@@ -1,0 +1,44 @@
+{
+  "name": "javascript-2d-game-tutorial",
+  "version": "1.0.0",
+  "description": "A Space Invaders-style 2D game with AI agent built with vanilla JavaScript",
+  "main": "src/js/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000",
+    "build": "echo 'No build step required for vanilla JS'",
+    "test": "echo 'No tests specified'",
+    "lint": "eslint src/js/**/*.js",
+    "format": "prettier --write src/**/*.{js,css}",
+    "docker:build": "docker build -t javascript-2d-game .",
+    "docker:run": "docker run -p 8080:80 javascript-2d-game",
+    "docker:compose": "docker-compose up --build"
+  },
+  "keywords": [
+    "game",
+    "javascript",
+    "canvas",
+    "ai",
+    "space-invaders",
+    "2d-game",
+    "vanilla-js"
+  ],
+  "author": "Game Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^2.8.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/javascript-2d-game-tutorial.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/javascript-2d-game-tutorial/issues"
+  },
+  "homepage": "https://github.com/your-username/javascript-2d-game-tutorial#readme"
+} 
