@@ -62,6 +62,28 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+# Local values for dynamic subnet configuration
+locals {
+  az_count = length(data.aws_availability_zones.available.names)
+  
+  # Generate subnet CIDRs dynamically based on available AZs
+  private_subnet_cidrs = [
+    for i in range(local.az_count) : cidrsubnet(var.vpc_cidr, 8, i + 1)
+  ]
+  
+  public_subnet_cidrs = [
+    for i in range(local.az_count) : cidrsubnet(var.vpc_cidr, 8, i + 100)
+  ]
+  
+  # Validation
+  required_azs = 2
+}
+
+# Validate AZ count
+resource "null_resource" "az_validation" {
+  count = local.az_count >= local.required_azs ? 0 : "ERROR: Region ${var.aws_region} has only ${local.az_count} AZs, but ${local.required_azs} are required"
+}
+
 # VPC and Networking
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
@@ -70,9 +92,10 @@ module "vpc" {
   name = "${var.project_name}-vpc"
   cidr = var.vpc_cidr
 
+  # Use all available AZs and dynamic CIDRs
   azs             = data.aws_availability_zones.available.names
-  private_subnets = var.private_subnet_cidrs
-  public_subnets  = var.public_subnet_cidrs
+  private_subnets = local.private_subnet_cidrs
+  public_subnets  = local.public_subnet_cidrs
 
   enable_nat_gateway     = true
   single_nat_gateway     = false
@@ -112,11 +135,11 @@ module "eks" {
 
   eks_managed_node_groups = {
     general = {
-      desired_size = 2
-      min_size     = 1
-      max_size     = 5
+      desired_size = var.node_group_desired_size
+      min_size     = var.node_group_min_size
+      max_size     = var.node_group_max_size
 
-      instance_types = ["t3.medium"]
+      instance_types = var.node_group_instance_types
       capacity_type  = "ON_DEMAND"
 
       labels = {
@@ -389,12 +412,12 @@ resource "kubernetes_deployment" "game" {
 
           resources {
             limits = {
-              cpu    = "500m"
-              memory = "512Mi"
+              cpu    = var.container_cpu_limit
+              memory = var.container_memory_limit
             }
             requests = {
-              cpu    = "250m"
-              memory = "256Mi"
+              cpu    = var.container_cpu_request
+              memory = var.container_memory_request
             }
           }
 
@@ -499,8 +522,8 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "game" {
       name        = kubernetes_deployment.game.metadata[0].name
     }
 
-    min_replicas = 1
-    max_replicas = 10
+    min_replicas = var.hpa_min_replicas
+    max_replicas = var.hpa_max_replicas
 
     metric {
       type = "Resource"
@@ -508,7 +531,7 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "game" {
         name = "cpu"
         target {
           type                = "Utilization"
-          average_utilization = 70
+          average_utilization = var.hpa_cpu_target
         }
       }
     }
@@ -519,7 +542,7 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "game" {
         name = "memory"
         target {
           type                = "Utilization"
-          average_utilization = 80
+          average_utilization = var.hpa_memory_target
         }
       }
     }
@@ -555,4 +578,40 @@ output "ecr_repository_url" {
 output "load_balancer_hostname" {
   description = "The hostname of the load balancer"
   value       = kubernetes_service.game.status[0].load_balancer[0].ingress[0].hostname
+}
+
+# VPC and networking outputs for debugging
+output "vpc_id" {
+  description = "ID of the VPC"
+  value       = module.vpc.vpc_id
+}
+
+output "private_subnets" {
+  description = "List of private subnet IDs"
+  value       = module.vpc.private_subnets
+}
+
+output "public_subnets" {
+  description = "List of public subnet IDs"
+  value       = module.vpc.public_subnets
+}
+
+output "availability_zones" {
+  description = "List of availability zones used"
+  value       = data.aws_availability_zones.available.names
+}
+
+output "az_count" {
+  description = "Number of availability zones"
+  value       = local.az_count
+}
+
+output "private_subnet_cidrs" {
+  description = "List of private subnet CIDRs"
+  value       = local.private_subnet_cidrs
+}
+
+output "public_subnet_cidrs" {
+  description = "List of public subnet CIDRs"
+  value       = local.public_subnet_cidrs
 } 

@@ -44,17 +44,10 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-variable "private_subnet_cidrs" {
-  description = "CIDR blocks for private subnets"
-  type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-}
-
-variable "public_subnet_cidrs" {
-  description = "CIDR blocks for public subnets"
-  type        = list(string)
-  default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
-}
+# Note: Subnet CIDRs are now generated dynamically based on available AZs
+# This ensures compatibility across different AWS regions with varying AZ counts
+# Private subnets: 10.0.1.0/24, 10.0.2.0/24, etc. (one per AZ)
+# Public subnets: 10.0.101.0/24, 10.0.102.0/24, etc. (one per AZ)
 
 variable "game_replicas" {
   description = "Number of game replicas to deploy"

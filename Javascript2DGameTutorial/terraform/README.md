@@ -1,283 +1,265 @@
-# JavaScript 2D Game - AWS EKS Deployment with Terraform
+# Terraform AWS EKS Deployment for JavaScript 2D Game
 
-This Terraform configuration deploys your JavaScript 2D game with AI agent to AWS EKS, following modern engineering practices from the [AWS AppMod Blueprints](https://github.com/aws-samples/appmod-blueprints/tree/main).
+This directory contains Terraform configurations to deploy the JavaScript 2D Game to AWS EKS (Elastic Kubernetes Service).
 
-## 🏗️ Architecture Overview
+## 🚀 **Recent Fixes (v2.0)**
 
-The deployment creates a complete AWS infrastructure including:
+### **VPC Subnet Configuration Fix**
+- **Issue**: Fixed "empty tuple" errors when creating public subnets
+- **Root Cause**: Hardcoded subnet CIDRs didn't match available AZs in the region
+- **Solution**: Dynamic subnet CIDR generation based on available AZs
+- **Benefits**: 
+  - Works across all AWS regions with different AZ counts
+  - Automatically adapts to region-specific configurations
+  - No more manual subnet CIDR configuration needed
 
-- **VPC** with public and private subnets across multiple AZs
-- **EKS Cluster** with managed node groups
-- **ECR Repository** for Docker image storage
-- **Application Load Balancer** for traffic distribution
-- **Kubernetes Resources** (Deployment, Service, Ingress, HPA)
-- **Auto-scaling** based on CPU and memory utilization
+### **Key Changes**
+1. **Dynamic Subnet Generation**: Subnet CIDRs are now calculated automatically
+2. **AZ Validation**: Added validation to ensure sufficient AZs are available
+3. **Enhanced Outputs**: Added debugging outputs for VPC and subnet information
+4. **Validation Script**: New `validate.sh` script for pre-deployment checks
 
-## 📁 File Structure
+## 📁 **File Structure**
 
 ```
 terraform/
 ├── main.tf                 # Main Terraform configuration
-├── variables.tf            # Variable definitions
+├── variables.tf            # Input variables
+├── environments/           # Environment-specific configurations
+│   ├── dev.tfvars         # Development environment
+│   └── prod.tfvars        # Production environment
+├── k8s/                   # Kubernetes manifests
+│   └── deployment.yaml    # Game deployment configuration
 ├── deploy.sh              # Deployment automation script
-├── environments/
-│   ├── dev.tfvars         # Development environment config
-│   └── prod.tfvars        # Production environment config
-├── k8s/
-│   └── deployment.yaml    # Kubernetes manifests
+├── validate.sh            # Validation and debugging script
 └── README.md              # This file
 ```
 
-## 🚀 Quick Start
+## 🏗️ **Architecture Overview**
 
-### Prerequisites
+The deployment creates the following AWS resources:
 
+### **Networking**
+- **VPC**: Custom VPC with dynamic subnet configuration
+- **Subnets**: Public and private subnets (one per AZ)
+- **NAT Gateways**: For private subnet internet access
+- **Route Tables**: Proper routing configuration
+
+### **Compute & Container**
+- **EKS Cluster**: Managed Kubernetes cluster
+- **Node Groups**: Auto-scaling worker nodes
+- **ECR Repository**: Docker image storage
+
+### **Load Balancing & Ingress**
+- **Application Load Balancer**: Internet-facing load balancer
+- **Ingress Controller**: AWS Load Balancer Controller
+- **SSL/TLS**: HTTPS termination (optional)
+
+### **Monitoring & Scaling**
+- **Horizontal Pod Autoscaler**: Automatic scaling based on CPU/memory
+- **CloudWatch**: Logging and monitoring (optional)
+
+## 🚀 **Quick Start**
+
+### **Prerequisites**
 1. **AWS CLI** configured with appropriate permissions
-2. **Terraform** >= 1.0
+2. **Terraform** (version >= 1.0)
 3. **kubectl** for Kubernetes management
 4. **Docker** for building images
 
-### Installation
-
-```bash
-# Clone the repository
-git clone <your-repo>
-cd Javascript2DGameTutorial/terraform
-
-# Make deployment script executable
-chmod +x deploy.sh
-
-# Initialize and deploy to development environment
-./deploy.sh init
-./deploy.sh deploy dev
+### **Required AWS Permissions**
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:*",
+                "eks:*",
+                "iam:*",
+                "ecr:*",
+                "elasticloadbalancing:*",
+                "autoscaling:*",
+                "cloudwatch:*",
+                "logs:*",
+                "s3:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
 ```
 
-### Deployment Commands
-
+### **Step 1: Validate Configuration**
 ```bash
-# Initialize prerequisites and backend
-./deploy.sh init
+# Check AWS configuration and validate Terraform
+./validate.sh check
 
-# Deploy infrastructure and application
-./deploy.sh deploy [environment]
+# Show configuration summary
+./validate.sh summary dev
+```
 
-# Deploy only infrastructure
-./deploy.sh infrastructure [environment]
+### **Step 2: Deploy Infrastructure**
+```bash
+# Deploy to development environment
+./deploy.sh deploy dev
 
-# Deploy only application
-./deploy.sh application
+# Deploy to production environment
+./deploy.sh deploy prod
+```
 
-# Check deployment status
+### **Step 3: Verify Deployment**
+```bash
+# Get deployment status
 ./deploy.sh status
 
-# Destroy infrastructure
-./deploy.sh destroy [environment]
+# Get cluster info
+aws eks describe-cluster --name javascript-2d-game-dev --region us-west-2
 ```
 
-## 🌍 Environment Configuration
+## 🔧 **Configuration Options**
 
-### Development Environment (`dev.tfvars`)
+### **Environment Variables**
 
-- **EKS Cluster**: Single node group with t3.medium instances
-- **Replicas**: 1 game instance
-- **Resources**: Lower CPU/memory limits for cost optimization
-- **Autoscaling**: 1-3 replicas
-- **Monitoring**: Enabled
-- **Backup**: Disabled
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `aws_region` | AWS region | `us-west-2` | `us-east-1` |
+| `environment` | Environment name | `dev` | `prod` |
+| `cluster_name` | EKS cluster name | `javascript-2d-game-cluster` | Custom name |
+| `game_replicas` | Number of game pods | `2` | `5` |
+| `node_group_desired_size` | Desired node count | `2` | `3` |
+| `container_cpu_limit` | CPU limit per pod | `500m` | `1000m` |
 
-### Production Environment (`prod.tfvars`)
+### **Dynamic Subnet Configuration**
+The VPC now automatically generates subnet CIDRs based on available AZs:
 
-- **EKS Cluster**: Multiple node groups with t3.large instances
-- **Replicas**: 3 game instances
-- **Resources**: Higher CPU/memory limits for performance
-- **Autoscaling**: 2-10 replicas
-- **Monitoring**: Enabled
-- **Backup**: Enabled
+- **Private Subnets**: `10.0.1.0/24`, `10.0.2.0/24`, etc. (one per AZ)
+- **Public Subnets**: `10.0.101.0/24`, `10.0.102.0/24`, etc. (one per AZ)
 
-## 🔧 Configuration Options
+This ensures compatibility across all AWS regions.
 
-### Core Variables
+## 🛠️ **Troubleshooting**
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `aws_region` | AWS region for deployment | `us-west-2` |
-| `environment` | Environment name | `dev` |
-| `cluster_name` | EKS cluster name | `javascript-2d-game-cluster` |
-| `game_replicas` | Number of game replicas | `2` |
+### **Common Issues**
 
-### Networking
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `vpc_cidr` | VPC CIDR block | `10.0.0.0/16` |
-| `private_subnet_cidrs` | Private subnet CIDRs | `["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]` |
-| `public_subnet_cidrs` | Public subnet CIDRs | `["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]` |
-
-### Scaling
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `hpa_min_replicas` | Minimum HPA replicas | `1` |
-| `hpa_max_replicas` | Maximum HPA replicas | `10` |
-| `hpa_cpu_target` | CPU target percentage | `70` |
-| `hpa_memory_target` | Memory target percentage | `80` |
-
-## 🎮 Game Features
-
-The deployed game includes:
-
-- **AI Agent**: Press 'A' to toggle AI mode
-- **Difficulty Levels**: Press 'D' to cycle through Easy/Medium/Hard
-- **Auto-scaling**: Automatically scales based on load
-- **Load Balancing**: Traffic distributed across multiple instances
-- **Health Checks**: Automatic health monitoring and recovery
-
-## 🔒 Security Features
-
-- **VPC Isolation**: Private subnets for EKS nodes
-- **Security Groups**: Restrictive network access
-- **IAM Roles**: Least privilege access
-- **ECR Scanning**: Automatic vulnerability scanning
-- **SSL/TLS**: HTTPS support with automatic redirect
-
-## 📊 Monitoring and Observability
-
-### CloudWatch Integration
-
-- **Container Insights**: Automatic EKS monitoring
-- **Log Aggregation**: Centralized logging
-- **Metrics**: CPU, memory, and network metrics
-- **Alarms**: Automatic alerting for issues
-
-### Kubernetes Monitoring
-
-- **Health Checks**: Liveness and readiness probes
-- **Resource Limits**: CPU and memory constraints
-- **Auto-scaling**: Horizontal Pod Autoscaler
-- **Load Balancing**: Application Load Balancer
-
-## 🔄 CI/CD Integration
-
-### GitHub Actions Example
-
-```yaml
-name: Deploy to AWS EKS
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-west-2
-    
-    - name: Deploy to EKS
-      run: |
-        cd terraform
-        ./deploy.sh deploy prod
+#### **1. VPC Subnet Errors**
+```bash
+# Error: aws_subnet.public is empty tuple
+# Solution: Use the updated configuration with dynamic subnet generation
 ```
 
-## 🛠️ Troubleshooting
+#### **2. AZ Count Issues**
+```bash
+# Check available AZs in your region
+aws ec2 describe-availability-zones --region us-west-2
 
-### Common Issues
+# Use validate.sh to check configuration
+./validate.sh check
+```
 
-1. **ECR Repository Not Found**
-   ```bash
-   # Deploy infrastructure first
-   ./deploy.sh infrastructure dev
-   ```
+#### **3. EKS Cluster Creation Fails**
+```bash
+# Check IAM permissions
+aws sts get-caller-identity
 
-2. **Kubernetes Connection Issues**
-   ```bash
-   # Update kubeconfig
-   aws eks update-kubeconfig --region us-west-2 --name your-cluster-name
-   ```
+# Verify VPC configuration
+terraform output vpc_id
+terraform output private_subnets
+```
 
-3. **Image Pull Errors**
-   ```bash
-   # Check ECR login
-   aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin your-ecr-url
-   ```
+### **Debugging Commands**
+```bash
+# Validate Terraform configuration
+terraform validate
 
-### Debug Commands
+# Check what will be created
+terraform plan -var-file=environments/dev.tfvars
 
+# View outputs
+terraform output
+
+# Check EKS cluster status
+aws eks describe-cluster --name javascript-2d-game-dev --region us-west-2
+```
+
+## 📊 **Monitoring & Logs**
+
+### **CloudWatch Logs**
+```bash
+# View EKS cluster logs
+aws logs describe-log-groups --log-group-name-prefix "/aws/eks/javascript-2d-game"
+
+# View application logs
+kubectl logs -n javascript-2d-game deployment/javascript-2d-game
+```
+
+### **Resource Monitoring**
 ```bash
 # Check pod status
 kubectl get pods -n javascript-2d-game
 
-# View pod logs
-kubectl logs -n javascript-2d-game deployment/javascript-2d-game
+# Check HPA status
+kubectl get hpa -n javascript-2d-game
 
-# Check service status
-kubectl get svc -n javascript-2d-game
-
-# Check ingress status
-kubectl get ingress -n javascript-2d-game
+# Check service endpoints
+kubectl get endpoints -n javascript-2d-game
 ```
 
-## 💰 Cost Optimization
+## 🔄 **Updates & Maintenance**
 
-### Development Environment
-
-- Use spot instances for cost savings
-- Reduce replica count to minimum
-- Use smaller instance types
-- Disable unnecessary monitoring
-
-### Production Environment
-
-- Use reserved instances for predictable costs
-- Implement proper resource limits
-- Monitor and optimize resource usage
-- Use auto-scaling to handle traffic spikes
-
-## 🔄 Updates and Maintenance
-
-### Updating the Application
-
+### **Updating the Game**
 ```bash
-# Build and push new image
-docker build -t your-ecr-url:latest ..
-docker push your-ecr-url:latest
+# Build and push new Docker image
+docker build -t javascript-2d-game .
+docker tag javascript-2d-game:latest $ECR_REPO_URL:latest
+docker push $ECR_REPO_URL:latest
 
-# Update deployment
+# Update Kubernetes deployment
 kubectl rollout restart deployment/javascript-2d-game -n javascript-2d-game
 ```
 
-### Infrastructure Updates
-
+### **Scaling**
 ```bash
-# Plan changes
-terraform plan -var-file=environments/dev.tfvars
+# Scale manually
+kubectl scale deployment javascript-2d-game --replicas=5 -n javascript-2d-game
 
-# Apply changes
-terraform apply -var-file=environments/dev.tfvars
+# Update HPA
+kubectl patch hpa javascript-2d-game-hpa -n javascript-2d-game -p '{"spec":{"maxReplicas":15}}'
 ```
 
-## 📚 Additional Resources
+## 🧹 **Cleanup**
 
-- [AWS AppMod Blueprints](https://github.com/aws-samples/appmod-blueprints/tree/main)
-- [EKS Best Practices](https://aws.github.io/aws-eks-best-practices/)
+### **Destroy Resources**
+```bash
+# Destroy everything
+./deploy.sh destroy dev
+
+# Or manually
+terraform destroy -var-file=environments/dev.tfvars
+```
+
+### **Cleanup S3 Backend**
+```bash
+# Remove Terraform state bucket
+aws s3 rb s3://javascript-2d-game-terraform-state --force
+```
+
+## 📚 **Additional Resources**
+
+- [AWS EKS Documentation](https://docs.aws.amazon.com/eks/)
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
+- [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/)
 
-## 🤝 Contributing
+## 🤝 **Support**
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test the deployment
-5. Submit a pull request
+For issues related to:
+- **Terraform Configuration**: Check the troubleshooting section above
+- **AWS Services**: Refer to AWS documentation
+- **Kubernetes**: Check kubectl commands and logs
+- **Game Application**: Check application logs and health endpoints
 
-## 📄 License
+---
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+**Note**: This configuration is designed for production use with proper security, monitoring, and scaling capabilities. Always test in a development environment first. 
