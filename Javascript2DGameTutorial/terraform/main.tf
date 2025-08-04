@@ -133,6 +133,17 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
+  # Enable cluster encryption with KMS
+  create_kms_key = true
+  cluster_encryption_config = {
+    resources = ["secrets"]
+    provider_key_arn = module.eks.kms_key_arn
+  }
+
+  # Configure KMS key deletion window to 7 days
+  kms_key_deletion_window_in_days = 7
+  kms_key_enable_key_rotation    = true
+
   eks_managed_node_groups = {
     general = {
       desired_size = var.node_group_desired_size
