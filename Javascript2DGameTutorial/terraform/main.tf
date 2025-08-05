@@ -60,6 +60,59 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
   role       = aws_iam_role.eks_cluster_role.name
 }
 
+# Additional IAM policy for EKS cluster to manage launch templates
+resource "aws_iam_policy" "eks_cluster_launch_template_policy" {
+  name        = "${var.cluster_name}-cluster-launch-template-policy"
+  description = "Additional permissions for EKS cluster to manage launch templates"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateLaunchTemplate",
+          "ec2:CreateLaunchTemplateVersion",
+          "ec2:DescribeLaunchTemplates",
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:ModifyLaunchTemplate",
+          "ec2:DeleteLaunchTemplate",
+          "ec2:DeleteLaunchTemplateVersions",
+          "ec2:RunInstances",
+          "ec2:CreateTags",
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceStatus",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVpcs",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DescribeAccountAttributes",
+          "ec2:DescribeImages",
+          "ec2:DescribeKeyPairs",
+          "ec2:DescribeIamInstanceProfileAssociations",
+          "ec2:DescribeLaunchTemplates",
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:CreateLaunchTemplate",
+          "ec2:CreateLaunchTemplateVersion",
+          "ec2:ModifyLaunchTemplate",
+          "ec2:DeleteLaunchTemplate",
+          "ec2:DeleteLaunchTemplateVersions",
+          "iam:PassRole",
+          "iam:GetInstanceProfile",
+          "iam:ListInstanceProfiles"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Attach the launch template policy to the cluster role
+resource "aws_iam_role_policy_attachment" "eks_cluster_launch_template_policy" {
+  policy_arn = aws_iam_policy.eks_cluster_launch_template_policy.arn
+  role       = aws_iam_role.eks_cluster_role.name
+}
+
 # IAM Role for EKS Node Groups
 resource "aws_iam_role" "eks_node_group_role" {
   name = "${var.cluster_name}-node-group-role"
@@ -94,11 +147,68 @@ resource "aws_iam_role_policy_attachment" "ec2_container_registry_read_only" {
   role       = aws_iam_role.eks_node_group_role.name
 }
 
+# Additional IAM policy for EC2 permissions needed by EKS node groups
+resource "aws_iam_policy" "eks_node_group_ec2_policy" {
+  name        = "${var.cluster_name}-node-group-ec2-policy"
+  description = "Additional EC2 permissions for EKS node groups"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances",
+          "ec2:DescribeRegions",
+          "ec2:DescribeRouteTables",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVolumes",
+          "ec2:DescribeVolumesModifications",
+          "ec2:DescribeVpcs",
+          "ec2:DescribeLaunchTemplates",
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:CreateLaunchTemplateVersion",
+          "ec2:ModifyLaunchTemplate",
+          "ec2:CreateTags",
+          "ec2:DeleteTags",
+          "ec2:RunInstances",
+          "ec2:CreateLaunchTemplate",
+          "ec2:DeleteLaunchTemplate",
+          "ec2:DeleteLaunchTemplateVersions",
+          "ec2:DescribeInstanceStatus",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DescribeAccountAttributes",
+          "ec2:DescribeImages",
+          "ec2:DescribeKeyPairs",
+          "ec2:DescribeIamInstanceProfileAssociations",
+          "iam:PassRole",
+          "iam:GetInstanceProfile",
+          "iam:ListInstanceProfiles"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Attach the additional EC2 policy to the node group role
+resource "aws_iam_role_policy_attachment" "eks_node_group_ec2_policy" {
+  policy_arn = aws_iam_policy.eks_node_group_ec2_policy.arn
+  role       = aws_iam_role.eks_node_group_role.name
+}
+
 # Configure Kubernetes Provider (for EKS)
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
   token                  = data.aws_eks_cluster_auth.cluster.token
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+  }
 }
 
 provider "helm" {
@@ -106,6 +216,12 @@ provider "helm" {
     host                   = module.eks.cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
     token                  = data.aws_eks_cluster_auth.cluster.token
+
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    }
   }
 }
 
@@ -179,6 +295,8 @@ module "vpc" {
   }
 }
 
+
+
 # EKS Cluster
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -191,19 +309,17 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  # Use custom IAM roles
+  # Use custom IAM role for cluster
   cluster_iam_role_name = aws_iam_role.eks_cluster_role.name
 
   # Enable cluster encryption with KMS
   create_kms_key = true
   cluster_encryption_config = {
     resources = ["secrets"]
-    provider_key_arn = module.eks.kms_key_arn
   }
 
   # Configure KMS key deletion window to 7 days
   kms_key_deletion_window_in_days = 7
-  kms_key_enable_key_rotation    = true
 
   eks_managed_node_groups = {
     general = {
@@ -215,7 +331,7 @@ module "eks" {
       capacity_type  = "ON_DEMAND"
 
       # Use custom IAM role for node groups
-      iam_role_name = aws_iam_role.eks_node_group_role.name
+      iam_role_arn = aws_iam_role.eks_node_group_role.arn
 
       labels = {
         Environment = var.environment
@@ -236,9 +352,6 @@ module "eks" {
       most_recent = true
     }
     vpc-cni = {
-      most_recent = true
-    }
-    aws-load-balancer-controller = {
       most_recent = true
     }
   }
@@ -437,11 +550,84 @@ resource "aws_iam_policy" "alb_controller" {
 # Attach ALB Controller policy to EKS node group role
 resource "aws_iam_role_policy_attachment" "alb_controller" {
   policy_arn = aws_iam_policy.alb_controller.arn
-  role       = module.eks.cluster_iam_role_name
+  role       = aws_iam_role.eks_node_group_role.name
+}
+
+# IAM Role for AWS Load Balancer Controller Service Account (IRSA)
+resource "aws_iam_role" "aws_load_balancer_controller" {
+  depends_on = [module.eks]
+  name = "${var.cluster_name}-aws-load-balancer-controller"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}"
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# Attach ALB Controller policy to the service account role
+resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller" {
+  depends_on = [aws_iam_role.aws_load_balancer_controller]
+  policy_arn = aws_iam_policy.alb_controller.arn
+  role       = aws_iam_role.aws_load_balancer_controller.name
+}
+
+# Install AWS Load Balancer Controller using Helm
+resource "helm_release" "aws_load_balancer_controller" {
+  depends_on = [module.eks, aws_iam_role.aws_load_balancer_controller]
+  name       = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  create_namespace = false
+
+  set {
+    name  = "clusterName"
+    value = var.cluster_name
+  }
+
+  set {
+    name  = "serviceAccount.create"
+    value = "false"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = "aws-load-balancer-controller"
+  }
+
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.aws_load_balancer_controller.arn
+  }
+
+  set {
+    name  = "region"
+    value = var.aws_region
+  }
+
+  set {
+    name  = "vpcId"
+    value = module.vpc.vpc_id
+  }
 }
 
 # Kubernetes namespace for the game
 resource "kubernetes_namespace" "game" {
+  depends_on = [module.eks]
+
   metadata {
     name = "javascript-2d-game"
     labels = {
@@ -452,6 +638,8 @@ resource "kubernetes_namespace" "game" {
 
 # Kubernetes deployment for the game
 resource "kubernetes_deployment" "game" {
+  depends_on = [module.eks, kubernetes_namespace.game]
+
   metadata {
     name      = "javascript-2d-game"
     namespace = kubernetes_namespace.game.metadata[0].name
@@ -521,6 +709,8 @@ resource "kubernetes_deployment" "game" {
 
 # Kubernetes service
 resource "kubernetes_service" "game" {
+  depends_on = [module.eks, kubernetes_namespace.game]
+
   metadata {
     name      = "javascript-2d-game-service"
     namespace = kubernetes_namespace.game.metadata[0].name
@@ -545,6 +735,8 @@ resource "kubernetes_service" "game" {
 
 # Ingress for the game
 resource "kubernetes_ingress_v1" "game" {
+  depends_on = [module.eks, kubernetes_namespace.game, kubernetes_service.game]
+
   metadata {
     name      = "javascript-2d-game-ingress"
     namespace = kubernetes_namespace.game.metadata[0].name
@@ -585,6 +777,8 @@ resource "kubernetes_ingress_v1" "game" {
 
 # Horizontal Pod Autoscaler
 resource "kubernetes_horizontal_pod_autoscaler_v2" "game" {
+  depends_on = [module.eks, kubernetes_namespace.game, kubernetes_deployment.game]
+
   metadata {
     name      = "javascript-2d-game-hpa"
     namespace = kubernetes_namespace.game.metadata[0].name
@@ -638,6 +832,11 @@ output "cluster_security_group_id" {
 output "cluster_iam_role_name" {
   description = "IAM role name associated with EKS cluster"
   value       = module.eks.cluster_iam_role_name
+}
+
+output "node_group_iam_role_name" {
+  description = "IAM role name associated with EKS node group"
+  value       = aws_iam_role.eks_node_group_role.name
 }
 
 output "cluster_certificate_authority_data" {
