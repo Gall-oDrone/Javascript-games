@@ -36,6 +36,64 @@ provider "aws" {
   }
 }
 
+# IAM Role for EKS Cluster
+resource "aws_iam_role" "eks_cluster_role" {
+  name = "${var.cluster_name}-cluster-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# Attach EKS Cluster Policy
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.eks_cluster_role.name
+}
+
+# IAM Role for EKS Node Groups
+resource "aws_iam_role" "eks_node_group_role" {
+  name = "${var.cluster_name}-node-group-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# Attach required policies for EKS node groups
+resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.eks_node_group_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "eks_cni_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_node_group_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_container_registry_read_only" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.eks_node_group_role.name
+}
+
 # Configure Kubernetes Provider (for EKS)
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
@@ -133,6 +191,9 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
+  # Use custom IAM roles
+  cluster_iam_role_name = aws_iam_role.eks_cluster_role.name
+
   # Enable cluster encryption with KMS
   create_kms_key = true
   cluster_encryption_config = {
@@ -152,6 +213,9 @@ module "eks" {
 
       instance_types = var.node_group_instance_types
       capacity_type  = "ON_DEMAND"
+
+      # Use custom IAM role for node groups
+      iam_role_name = aws_iam_role.eks_node_group_role.name
 
       labels = {
         Environment = var.environment

@@ -4,7 +4,7 @@ aws_region  = "us-west-2"
 
 # EKS Cluster Configuration
 cluster_name        = "javascript-2d-game-dev"
-kubernetes_version  = "1.28"
+kubernetes_version  = "1.33"
 game_replicas       = 1
 
 # Node Group Configuration

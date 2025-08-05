@@ -1,0 +1,210 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "iam:CreateRole",
+                "iam:GetRolePolicy",
+                "iam:DetachRolePolicy",
+                "iam:AttachRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:DeleteRole",
+                "iam:ListInstanceProfilesForRole",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListRolePolicies",
+                "iam:TagRole",
+                "iam:PassRole",
+                "sts:AssumeRole",
+                "iam:DeleteServiceLinkedRole",
+                "iam:GetServiceLinkedRoleDeletionStatus",
+                "eks:*",
+                "eks-auth:*",
+                "ec2:*"
+            ],
+            "Resource": [
+                "arn:aws:iam::654654565400:role/eks-workshop*",
+                "arn:aws:iam::654654565400:role/eksctl-eks-workshop*",
+                "arn:aws:iam::654654565400:role/aws-service-role/fis*",
+                "arn:aws:iam::654654565400:role/*javascript-2d-game*",
+                "arn:aws:iam::654654565400:role/*eks*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "iam:CreatePolicy",
+                "iam:DeletePolicy",
+                "iam:GetPolicyVersion",
+                "iam:DeletePolicyVersion",
+                "iam:ListPolicyVersions",
+                "iam:TagPolicy",
+                "iam:GetPolicy"
+            ],
+            "Resource": [
+                "arn:aws:iam::654654565400:policy/eks-workshop*",
+                "arn:aws:iam::654654565400:policy/eksctl-eks-workshop*",
+                "arn:aws:iam::654654565400:policy/*javascript-2d-game*",
+                "arn:aws:iam::654654565400:policy/*eks*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "iam:CreateInstanceProfile",
+                "iam:DeleteInstanceProfile",
+                "iam:GetInstanceProfile",
+                "iam:TagInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:AddRoleToInstanceProfile"
+            ],
+            "Resource": [
+                "arn:aws:iam::654654565400:instance-profile/eks-workshop*",
+                "arn:aws:iam::654654565400:instance-profile/eksctl-eks-workshop*",
+                "arn:aws:iam::654654565400:instance-profile/eks-*",
+                "arn:aws:iam::654654565400:instance-profile/*javascript-2d-game*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "iam:CreateUser",
+                "iam:DeleteUser",
+                "iam:TagUser",
+                "iam:GetUser",
+                "iam:ListGroupsForUser",
+                "iam:AttachUserPolicy",
+                "iam:DetachUserPolicy",
+                "iam:ListAttachedUserPolicies",
+                "iam:*SSHPublicKey"
+            ],
+            "Resource": [
+                "arn:aws:iam::654654565400:user/eks-workshop*",
+                "arn:aws:iam::654654565400:user/*javascript-2d-game*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "iam:ListOpenIDConnectProviders",
+                "iam:CreateOpenIDConnectProvider",
+                "iam:DeleteOpenIDConnectProvider",
+                "iam:TagOpenIDConnectProvider",
+                "iam:GetOpenIDConnectProvider",
+                "iam:GetRole",
+                "iam:ListPolicies",
+                "iam:ListRoles"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": [
+                        "eks.amazonaws.com",
+                        "eks-nodegroup.amazonaws.com",
+                        "eks-fargate.amazonaws.com",
+                        "guardduty.amazonaws.com",
+                        "spot.amazonaws.com",
+                        "fis.amazonaws.com",
+                        "transitgateway.amazonaws.com"
+                    ]
+                }
+            },
+            "Action": [
+                "iam:CreateServiceLinkedRole"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "ec2:*",
+                "elasticloadbalancing:*",
+                "autoscaling:*",
+                "ecr:*",
+                "kms:*",
+                "s3:*",
+                "cloudwatch:*",
+                "logs:*",
+                "events:*",
+                "lambda:*",
+                "cloudformation:*",
+                "ssm:*",
+                "secretsmanager:*",
+                "route53:*",
+                "acm:*",
+                "waf:*",
+                "wafv2:*",
+                "shield:*",
+                "guardduty:*",
+                "securityhub:*",
+                "config:*",
+                "backup:*",
+                "fsx:*",
+                "efs:*",
+                "rds:*",
+                "elasticache:*",
+                "dynamodb:*",
+                "sns:*",
+                "sqs:*",
+                "apigateway:*",
+                "cognito-idp:*",
+                "cognito-identity:*",
+                "sts:*",
+                "organizations:*",
+                "account:*",
+                "billing:*",
+                "budgets:*",
+                "ce:*",
+                "cur:*",
+                "pricing:*",
+                "support:*",
+                "trustedadvisor:*",
+                "health:*",
+                "servicequotas:*",
+                "ram:*",
+                "resource-groups:*",
+                "tag:*",
+                "resourcegroupstaggingapi:*",
+                "config:*",
+                "backup:*",
+                "fsx:*",
+                "efs:*",
+                "rds:*",
+                "elasticache:*",
+                "dynamodb:*",
+                "sns:*",
+                "sqs:*",
+                "apigateway:*",
+                "cognito-idp:*",
+                "cognito-identity:*",
+                "sts:*",
+                "organizations:*",
+                "account:*",
+                "billing:*",
+                "budgets:*",
+                "ce:*",
+                "cur:*",
+                "pricing:*",
+                "support:*",
+                "trustedadvisor:*",
+                "health:*",
+                "servicequotas:*",
+                "ram:*",
+                "resource-groups:*",
+                "tag:*",
+                "resourcegroupstaggingapi:*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow"
+        }
+    ]
+}
