@@ -107,10 +107,39 @@ resource "aws_iam_policy" "eks_cluster_launch_template_policy" {
   })
 }
 
-# Attach the launch template policy to the cluster role
+# Attach the launch template policy to the EKS cluster role (created by the module)
 resource "aws_iam_role_policy_attachment" "eks_cluster_launch_template_policy" {
+  depends_on = [module.eks]
   policy_arn = aws_iam_policy.eks_cluster_launch_template_policy.arn
-  role       = aws_iam_role.eks_cluster_role.name
+  role       = module.eks.cluster_iam_role_name
+}
+
+# Policy to allow the cluster role to pass the node group role
+resource "aws_iam_policy" "eks_cluster_pass_node_role_policy" {
+  name        = "${var.cluster_name}-cluster-pass-node-role-policy"
+  description = "Allow EKS cluster to pass node group IAM role"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:PassRole"
+        ]
+        Resource = [
+          aws_iam_role.eks_node_group_role.arn
+        ]
+      }
+    ]
+  })
+}
+
+# Attach the pass role policy to the EKS cluster role
+resource "aws_iam_role_policy_attachment" "eks_cluster_pass_node_role_policy" {
+  depends_on = [module.eks]
+  policy_arn = aws_iam_policy.eks_cluster_pass_node_role_policy.arn
+  role       = module.eks.cluster_iam_role_name
 }
 
 # IAM Role for EKS Node Groups
@@ -309,9 +338,6 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  # Use custom IAM role for cluster
-  cluster_iam_role_name = aws_iam_role.eks_cluster_role.name
-
   # Enable cluster encryption with KMS
   create_kms_key = true
   cluster_encryption_config = {
@@ -332,6 +358,10 @@ module "eks" {
 
       # Use custom IAM role for node groups
       iam_role_arn = aws_iam_role.eks_node_group_role.arn
+
+      # Add launch template configuration
+      create_launch_template = true
+      launch_template_name   = "${var.cluster_name}-node-group-lt"
 
       labels = {
         Environment = var.environment
