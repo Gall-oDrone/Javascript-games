@@ -36,208 +36,11 @@ provider "aws" {
   }
 }
 
-# IAM Role for EKS Cluster
-resource "aws_iam_role" "eks_cluster_role" {
-  name = "${var.cluster_name}-cluster-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "eks.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-# Attach EKS Cluster Policy
-resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster_role.name
-}
-
-# Additional IAM policy for EKS cluster to manage launch templates
-resource "aws_iam_policy" "eks_cluster_launch_template_policy" {
-  name        = "${var.cluster_name}-cluster-launch-template-policy"
-  description = "Additional permissions for EKS cluster to manage launch templates"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ec2:CreateLaunchTemplate",
-          "ec2:CreateLaunchTemplateVersion",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DescribeLaunchTemplateVersions",
-          "ec2:ModifyLaunchTemplate",
-          "ec2:DeleteLaunchTemplate",
-          "ec2:DeleteLaunchTemplateVersions",
-          "ec2:RunInstances",
-          "ec2:CreateTags",
-          "ec2:DescribeInstances",
-          "ec2:DescribeInstanceStatus",
-          "ec2:DescribeSecurityGroups",
-          "ec2:DescribeSubnets",
-          "ec2:DescribeVpcs",
-          "ec2:DescribeAvailabilityZones",
-          "ec2:DescribeAccountAttributes",
-          "ec2:DescribeImages",
-          "ec2:DescribeKeyPairs",
-          "ec2:DescribeIamInstanceProfileAssociations",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DescribeLaunchTemplateVersions",
-          "ec2:CreateLaunchTemplate",
-          "ec2:CreateLaunchTemplateVersion",
-          "ec2:ModifyLaunchTemplate",
-          "ec2:DeleteLaunchTemplate",
-          "ec2:DeleteLaunchTemplateVersions",
-          "iam:PassRole",
-          "iam:GetInstanceProfile",
-          "iam:ListInstanceProfiles"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-# Attach the launch template policy to the EKS cluster role (created by the module)
-resource "aws_iam_role_policy_attachment" "eks_cluster_launch_template_policy" {
-  depends_on = [module.eks]
-  policy_arn = aws_iam_policy.eks_cluster_launch_template_policy.arn
-  role       = module.eks.cluster_iam_role_name
-}
-
-# Policy to allow the cluster role to pass the node group role
-resource "aws_iam_policy" "eks_cluster_pass_node_role_policy" {
-  name        = "${var.cluster_name}-cluster-pass-node-role-policy"
-  description = "Allow EKS cluster to pass node group IAM role"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "iam:PassRole"
-        ]
-        Resource = [
-          aws_iam_role.eks_node_group_role.arn
-        ]
-      }
-    ]
-  })
-}
-
-# Attach the pass role policy to the EKS cluster role
-resource "aws_iam_role_policy_attachment" "eks_cluster_pass_node_role_policy" {
-  depends_on = [module.eks]
-  policy_arn = aws_iam_policy.eks_cluster_pass_node_role_policy.arn
-  role       = module.eks.cluster_iam_role_name
-}
-
-# IAM Role for EKS Node Groups
-resource "aws_iam_role" "eks_node_group_role" {
-  name = "${var.cluster_name}-node-group-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-# Attach required policies for EKS node groups
-resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.eks_node_group_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "eks_cni_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.eks_node_group_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "ec2_container_registry_read_only" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.eks_node_group_role.name
-}
-
-# Additional IAM policy for EC2 permissions needed by EKS node groups
-resource "aws_iam_policy" "eks_node_group_ec2_policy" {
-  name        = "${var.cluster_name}-node-group-ec2-policy"
-  description = "Additional EC2 permissions for EKS node groups"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ec2:DescribeInstances",
-          "ec2:DescribeRegions",
-          "ec2:DescribeRouteTables",
-          "ec2:DescribeSecurityGroups",
-          "ec2:DescribeSubnets",
-          "ec2:DescribeVolumes",
-          "ec2:DescribeVolumesModifications",
-          "ec2:DescribeVpcs",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DescribeLaunchTemplateVersions",
-          "ec2:CreateLaunchTemplateVersion",
-          "ec2:ModifyLaunchTemplate",
-          "ec2:CreateTags",
-          "ec2:DeleteTags",
-          "ec2:RunInstances",
-          "ec2:CreateLaunchTemplate",
-          "ec2:DeleteLaunchTemplate",
-          "ec2:DeleteLaunchTemplateVersions",
-          "ec2:DescribeInstanceStatus",
-          "ec2:DescribeAvailabilityZones",
-          "ec2:DescribeAccountAttributes",
-          "ec2:DescribeImages",
-          "ec2:DescribeKeyPairs",
-          "ec2:DescribeIamInstanceProfileAssociations",
-          "iam:PassRole",
-          "iam:GetInstanceProfile",
-          "iam:ListInstanceProfiles"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-# Attach the additional EC2 policy to the node group role
-resource "aws_iam_role_policy_attachment" "eks_node_group_ec2_policy" {
-  policy_arn = aws_iam_policy.eks_node_group_ec2_policy.arn
-  role       = aws_iam_role.eks_node_group_role.name
-}
-
 # Configure Kubernetes Provider (for EKS)
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
   token                  = data.aws_eks_cluster_auth.cluster.token
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
-  }
 }
 
 provider "helm" {
@@ -245,12 +48,6 @@ provider "helm" {
     host                   = module.eks.cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
     token                  = data.aws_eks_cluster_auth.cluster.token
-
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
-    }
   }
 }
 
@@ -324,8 +121,6 @@ module "vpc" {
   }
 }
 
-
-
 # EKS Cluster
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -337,6 +132,9 @@ module "eks" {
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
+
+  # Enable OIDC Provider for IRSA
+  enable_irsa = true
 
   # Enable cluster encryption with KMS
   create_kms_key = true
@@ -355,13 +153,17 @@ module "eks" {
 
       instance_types = var.node_group_instance_types
       capacity_type  = "ON_DEMAND"
-
-      # Use custom IAM role for node groups
-      iam_role_arn = aws_iam_role.eks_node_group_role.arn
-
-      # Add launch template configuration
-      create_launch_template = true
-      launch_template_name   = "${var.cluster_name}-node-group-lt"
+      
+      # Enable SSM access for debugging
+      enable_bootstrap_user_data = true
+      
+      # Ensure the node group has the correct IAM policies
+      iam_role_additional_policies = {
+        AmazonEKSWorkerNodePolicy          = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        AmazonEKS_CNI_Policy                = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+        AmazonSSMManagedInstanceCore       = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      }
 
       labels = {
         Environment = var.environment
@@ -371,9 +173,13 @@ module "eks" {
       tags = {
         ExtraTag = "eks-node-group"
       }
+      
+      # Add taints if needed
+      taints = []
     }
   }
 
+  # Cluster addons
   cluster_addons = {
     coredns = {
       most_recent = true
@@ -384,7 +190,13 @@ module "eks" {
     vpc-cni = {
       most_recent = true
     }
+    aws-ebs-csi-driver = {
+      most_recent = true
+    }
   }
+
+  # Manage aws-auth ConfigMap
+  manage_aws_auth_configmap = true
 
   tags = {
     Environment = var.environment
@@ -427,205 +239,62 @@ resource "aws_ecr_lifecycle_policy" "game" {
   })
 }
 
-# Application Load Balancer Controller IAM Policy
-resource "aws_iam_policy" "alb_controller" {
-  name        = "${var.project_name}-alb-controller-policy"
-  description = "Policy for ALB Controller"
+# IAM Policy for AWS Load Balancer Controller
+module "load_balancer_controller_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.3.1"
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "acm:DescribeCertificate",
-          "acm:ListCertificates",
-          "acm:GetCertificate"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ec2:AuthorizeSecurityGroupIngress",
-          "ec2:CreateSecurityGroup",
-          "ec2:CreateTags",
-          "ec2:CreateListener",
-          "ec2:CreateLoadBalancer",
-          "ec2:CreateRule",
-          "ec2:CreateTargetGroup",
-          "ec2:DeleteListener",
-          "ec2:DeleteLoadBalancer",
-          "ec2:DeleteRule",
-          "ec2:DeleteSecurityGroup",
-          "ec2:DeleteTargetGroup",
-          "ec2:DeregisterTargets",
-          "ec2:DescribeInstanceStatus",
-          "ec2:DescribeInstances",
-          "ec2:DescribeLoadBalancerAttributes",
-          "ec2:DescribeLoadBalancers",
-          "ec2:DescribeSecurityGroups",
-          "ec2:DescribeSubnets",
-          "ec2:DescribeTags",
-          "ec2:DescribeTargetGroupAttributes",
-          "ec2:DescribeTargetGroups",
-          "ec2:DescribeTargetHealth",
-          "ec2:DescribeVpcs",
-          "ec2:ModifyListener",
-          "ec2:ModifyLoadBalancerAttributes",
-          "ec2:ModifyRule",
-          "ec2:ModifySecurityGroupAttributes",
-          "ec2:ModifyTargetGroup",
-          "ec2:ModifyTargetGroupAttributes",
-          "ec2:RegisterTargets"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "elasticloadbalancing:AddListenerCertificates",
-          "elasticloadbalancing:AddTags",
-          "elasticloadbalancing:CreateListener",
-          "elasticloadbalancing:CreateLoadBalancer",
-          "elasticloadbalancing:CreateRule",
-          "elasticloadbalancing:CreateTargetGroup",
-          "elasticloadbalancing:DeleteListener",
-          "elasticloadbalancing:DeleteLoadBalancer",
-          "elasticloadbalancing:DeleteRule",
-          "elasticloadbalancing:DeleteTargetGroup",
-          "elasticloadbalancing:DeregisterTargets",
-          "elasticloadbalancing:DescribeListenerCertificates",
-          "elasticloadbalancing:DescribeListeners",
-          "elasticloadbalancing:DescribeLoadBalancerAttributes",
-          "elasticloadbalancing:DescribeLoadBalancers",
-          "elasticloadbalancing:DescribeRules",
-          "elasticloadbalancing:DescribeSSLPolicies",
-          "elasticloadbalancing:DescribeTags",
-          "elasticloadbalancing:DescribeTargetGroupAttributes",
-          "elasticloadbalancing:DescribeTargetGroups",
-          "elasticloadbalancing:DescribeTargetHealth",
-          "elasticloadbalancing:ModifyListener",
-          "elasticloadbalancing:ModifyLoadBalancerAttributes",
-          "elasticloadbalancing:ModifyRule",
-          "elasticloadbalancing:ModifyTargetGroup",
-          "elasticloadbalancing:ModifyTargetGroupAttributes",
-          "elasticloadbalancing:RegisterTargets",
-          "elasticloadbalancing:RemoveListenerCertificates",
-          "elasticloadbalancing:RemoveTags",
-          "elasticloadbalancing:SetIpAddressType",
-          "elasticloadbalancing:SetSecurityGroups",
-          "elasticloadbalancing:SetSubnets",
-          "elasticloadbalancing:SetWebAcl"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "iam:CreateServiceLinkedRole",
-          "iam:GetServerCertificate",
-          "iam:ListServerCertificates"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "cognito-idp:DescribeUserPoolClient"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "tag:GetResources",
-          "tag:TagResources"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "waf:GetWebACL"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "wafv2:GetWebACL",
-          "wafv2:GetWebACLForResource",
-          "wafv2:AssociateWebACL",
-          "wafv2:DisassociateWebACL"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "shield:DescribeProtection",
-          "shield:GetSubscriptionState",
-          "shield:DeleteProtection",
-          "shield:CreateProtection",
-          "shield:DescribeSubscription",
-          "shield:ListProtections"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
+  role_name = "${var.cluster_name}-aws-load-balancer-controller"
+
+  attach_load_balancer_controller_policy = true
+
+  oidc_providers = {
+    ex = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
+    }
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
 }
 
-# Attach ALB Controller policy to EKS node group role
-resource "aws_iam_role_policy_attachment" "alb_controller" {
-  policy_arn = aws_iam_policy.alb_controller.arn
-  role       = aws_iam_role.eks_node_group_role.name
-}
-
-# IAM Role for AWS Load Balancer Controller Service Account (IRSA)
-resource "aws_iam_role" "aws_load_balancer_controller" {
+# Create Service Account for AWS Load Balancer Controller
+resource "kubernetes_service_account" "aws_load_balancer_controller" {
   depends_on = [module.eks]
-  name = "${var.cluster_name}-aws-load-balancer-controller"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}"
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
-          }
-        }
-      }
-    ]
-  })
-}
-
-# Attach ALB Controller policy to the service account role
-resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller" {
-  depends_on = [aws_iam_role.aws_load_balancer_controller]
-  policy_arn = aws_iam_policy.alb_controller.arn
-  role       = aws_iam_role.aws_load_balancer_controller.name
+  
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+    labels = {
+      "app.kubernetes.io/component" = "controller"
+      "app.kubernetes.io/name"      = "aws-load-balancer-controller"
+    }
+    annotations = {
+      "eks.amazonaws.com/role-arn" = module.load_balancer_controller_irsa_role.iam_role_arn
+    }
+  }
 }
 
 # Install AWS Load Balancer Controller using Helm
 resource "helm_release" "aws_load_balancer_controller" {
-  depends_on = [module.eks, aws_iam_role.aws_load_balancer_controller]
+  depends_on = [
+    module.eks,
+    module.load_balancer_controller_irsa_role,
+    kubernetes_service_account.aws_load_balancer_controller
+  ]
+  
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
-  create_namespace = false
+  version    = "1.6.0"
 
   set {
     name  = "clusterName"
-    value = var.cluster_name
+    value = module.eks.cluster_name
   }
 
   set {
@@ -635,12 +304,7 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   set {
     name  = "serviceAccount.name"
-    value = "aws-load-balancer-controller"
-  }
-
-  set {
-    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = aws_iam_role.aws_load_balancer_controller.arn
+    value = kubernetes_service_account.aws_load_balancer_controller.metadata[0].name
   }
 
   set {
@@ -765,7 +429,12 @@ resource "kubernetes_service" "game" {
 
 # Ingress for the game
 resource "kubernetes_ingress_v1" "game" {
-  depends_on = [module.eks, kubernetes_namespace.game, kubernetes_service.game]
+  depends_on = [
+    module.eks,
+    kubernetes_namespace.game,
+    kubernetes_service.game,
+    helm_release.aws_load_balancer_controller
+  ]
 
   metadata {
     name      = "javascript-2d-game-ingress"
@@ -864,16 +533,6 @@ output "cluster_iam_role_name" {
   value       = module.eks.cluster_iam_role_name
 }
 
-output "node_group_iam_role_name" {
-  description = "IAM role name associated with EKS node group"
-  value       = aws_iam_role.eks_node_group_role.name
-}
-
-output "cluster_certificate_authority_data" {
-  description = "Base64 encoded certificate data required to communicate with the cluster"
-  value       = module.eks.cluster_certificate_authority_data
-}
-
 output "ecr_repository_url" {
   description = "URL of the ECR repository"
   value       = aws_ecr_repository.game.repository_url
@@ -918,4 +577,4 @@ output "private_subnet_cidrs" {
 output "public_subnet_cidrs" {
   description = "List of public subnet CIDRs"
   value       = local.public_subnet_cidrs
-} 
+}
