@@ -144,6 +144,10 @@ module "eks" {
 
   # Configure KMS key deletion window to 7 days
   kms_key_deletion_window_in_days = 7
+  
+  # Let the module create the aws-auth configmap
+  create_aws_auth_configmap = true
+  manage_aws_auth_configmap = true
 
   eks_managed_node_groups = {
     general = {
@@ -154,8 +158,8 @@ module "eks" {
       instance_types = var.node_group_instance_types
       capacity_type  = "ON_DEMAND"
       
-      # Enable SSM access for debugging
-      enable_bootstrap_user_data = true
+      # For Kubernetes 1.33, we can use AL2023
+      ami_type = "AL2023_x86_64_STANDARD"
       
       # Ensure the node group has the correct IAM policies
       iam_role_additional_policies = {
@@ -172,10 +176,14 @@ module "eks" {
 
       tags = {
         ExtraTag = "eks-node-group"
+        env     = var.environment
       }
       
       # Add taints if needed
       taints = []
+      
+      # Ensure proper disk size
+      disk_size = 50
     }
   }
 
@@ -194,9 +202,6 @@ module "eks" {
       most_recent = true
     }
   }
-
-  # Manage aws-auth ConfigMap
-  manage_aws_auth_configmap = true
 
   tags = {
     Environment = var.environment
