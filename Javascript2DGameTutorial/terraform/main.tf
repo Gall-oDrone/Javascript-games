@@ -147,7 +147,7 @@ module "eks" {
   
   # Let the module create the aws-auth configmap
   create_aws_auth_configmap = true
-  manage_aws_auth_configmap = true
+  manage_aws_auth_configmap = false
 
   eks_managed_node_groups = {
     general = {

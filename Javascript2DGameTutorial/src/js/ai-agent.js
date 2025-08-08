@@ -12,7 +12,7 @@ export class AIAgent {
         this.targetEnemy = null;
         this.movementDirection = 0; // -1: left, 0: none, 1: right
         this.shouldShootThisFrame = false;
-        this.shouldUseLaser = false;
+        this.shouldUseLaserThisFrame = false;
         this.laserType = 'small'; // 'small' or 'big'
     }
 
@@ -132,9 +132,9 @@ export class AIAgent {
         const enemies = this.getAllEnemies();
         const bosses = this.game.bossArray;
         const playerY = this.game.player.y;
-        
+
         let threatLevel = 0;
-        
+
         // Check for enemies close to player
         enemies.forEach(enemy => {
             if (enemy.y + enemy.height > playerY - 100) {
@@ -210,7 +210,7 @@ export class AIAgent {
 
         const playerCenterX = this.game.player.x + this.game.player.width * 0.5;
         const enemyCenterX = nearestEnemy.enemy.x + nearestEnemy.enemy.width * 0.5;
-        
+
         // Check if enemy is roughly aligned with player
         const alignment = Math.abs(playerCenterX - enemyCenterX);
         const tolerance = this.game.player.width * 0.3;
@@ -221,20 +221,20 @@ export class AIAgent {
     shouldUseLaser() {
         const threatLevel = this.assessThreatLevel();
         const energy = this.game.player.energy;
-        
+
         if (this.game.player.cooldown) return false;
-        
+
         // Use laser if high threat and enough energy
         if (threatLevel > 8 && energy > 20) {
             return true;
         }
-        
+
         // Use laser for bosses
         const nearestBoss = this.getNearestBoss();
         if (nearestBoss && nearestBoss.boss.y >= 0 && energy > 15) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -245,7 +245,7 @@ export class AIAgent {
         // Calculate center of mass of enemies
         let totalX = 0;
         let count = 0;
-        
+
         enemies.forEach(enemy => {
             if (enemy.y < this.game.height - 150) { // Only consider enemies in play area
                 totalX += enemy.x + enemy.width * 0.5;
@@ -254,7 +254,7 @@ export class AIAgent {
         });
 
         if (count === 0) return this.game.width * 0.5;
-        
+
         const centerOfMass = totalX / count;
         return centerOfMass;
     }
@@ -273,16 +273,16 @@ export class AIAgent {
         if (Math.abs(playerCenterX - optimalPosition) > tolerance) {
             return playerCenterX < optimalPosition ? 1 : -1; // 1 for right, -1 for left
         }
-        
+
         return 0; // No movement needed
     }
-    
+
     shouldDodge() {
         const enemies = this.getAllEnemies();
         const playerX = this.game.player.x;
         const playerY = this.game.player.y;
         const playerWidth = this.game.player.width;
-        
+
         // Check for enemies that might collide with player
         for (let enemy of enemies) {
             if (enemy.y + enemy.height > playerY - 50 && enemy.y < playerY + playerWidth) {
@@ -291,7 +291,7 @@ export class AIAgent {
                     // Potential collision - dodge left or right
                     const leftSpace = playerX;
                     const rightSpace = this.game.width - (playerX + playerWidth);
-                    
+
                     if (leftSpace > rightSpace) {
                         return -1; // Dodge left
                     } else {
@@ -300,7 +300,7 @@ export class AIAgent {
                 }
             }
         }
-        
+
         return 0; // No dodge needed
     }
 
@@ -310,13 +310,13 @@ export class AIAgent {
 
         this.lastDecision += deltaTime;
         if (this.lastDecision < this.decisionInterval) return;
-        
+
         this.lastDecision = 0;
 
         // Clear previous actions
         this.stopMoving();
         this.shouldShootThisFrame = false;
-        this.shouldUseLaser = false;
+        this.shouldUseLaserThisFrame = false;
 
         // Movement decision
         const movementDirection = this.shouldMove();
@@ -367,7 +367,7 @@ export class AIAgent {
                 break;
         }
     }
-    
+
     getPerformanceMetrics() {
         const gameState = this.getGameState();
         return {
@@ -380,7 +380,7 @@ export class AIAgent {
             waveCount: gameState.waveCount
         };
     }
-    
+
     // Advanced AI functions for future ML integration
     getStateVector() {
         // Convert game state to a numerical vector for ML models
@@ -388,7 +388,7 @@ export class AIAgent {
         const player = gameState.player;
         const enemies = gameState.enemies;
         const bosses = gameState.bosses;
-        
+
         // Normalize values to 0-1 range
         const stateVector = [
             player.x / this.game.width, // Normalized player X position
@@ -401,7 +401,7 @@ export class AIAgent {
             gameState.score / 1000, // Normalized score
             gameState.waveCount / 10 // Normalized wave count
         ];
-        
+
         return stateVector;
     }
 } 

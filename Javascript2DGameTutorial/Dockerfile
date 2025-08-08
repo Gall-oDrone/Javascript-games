@@ -9,7 +9,6 @@ COPY . .
 
 # Move the public directory contents to the root and ensure src is at root level
 RUN cp -r public/* . && \
-    cp -r src . && \
     rm -rf public
 
 # Create a custom nginx configuration for better performance
@@ -19,6 +18,13 @@ RUN echo 'server { \
     root /usr/share/nginx/html; \
     index index.html; \
     \
+    # Proper MIME types for JavaScript modules \
+    location ~* \.js$ { \
+    add_header Content-Type "application/javascript; charset=utf-8"; \
+    expires 1y; \
+    add_header Cache-Control "public, immutable"; \
+    } \
+    \
     # Enable gzip compression for better performance \
     gzip on; \
     gzip_vary on; \
@@ -26,7 +32,7 @@ RUN echo 'server { \
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json; \
     \
     # Cache static assets \
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { \
+    location ~* \.(css|png|jpg|jpeg|gif|ico|svg)$ { \
     expires 1y; \
     add_header Cache-Control "public, immutable"; \
     } \
