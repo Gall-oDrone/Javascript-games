@@ -1,5 +1,6 @@
 /**
  * Main entry point for the JavaScript 2D Game
+ * Now includes loading screen, main menu, and leaderboard
  */
 import { Game } from './game.js';
 
@@ -18,7 +19,7 @@ window.addEventListener('load', function () {
     ctx.lineWidth = 1;
     ctx.font = '30px Impact';
 
-    // Initialize game
+    // Initialize game with new systems
     const game = new Game(canvas);
 
     // Animation loop
@@ -30,7 +31,7 @@ window.addEventListener('load', function () {
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Render game
+        // Render game based on current state
         game.render(ctx, deltaTime);
 
         // Continue animation loop
@@ -39,4 +40,21 @@ window.addEventListener('load', function () {
 
     // Start animation loop
     animate(0);
-}); 
+
+    // Add visibility change handler to pause when tab is not visible
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            if (game.gameState === 'playing') {
+                game.pauseGame();
+            }
+        }
+    });
+
+    // Prevent default browser actions for game keys
+    window.addEventListener('keydown', function (e) {
+        // Prevent scrolling with arrow keys
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+});

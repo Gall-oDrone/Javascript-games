@@ -20,7 +20,7 @@ export class Boss {
     }
 
     draw(context) {
-        context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, 
+        context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height,
             this.width, this.height, this.x, this.y, this.width, this.height);
         if (this.lives >= 1) {
             context.save();
@@ -43,22 +43,22 @@ export class Boss {
         }
         this.x += this.speedX;
         this.y += this.speedY;
-        
+
         // collision detection boss/projectiles
         this.game.projectilesPool.forEach(projectile => {
-            if (this.game.checkCollision(this, projectile) && !projectile.free 
-            && this.lives >= 1 && this.y >= 0) {
+            if (this.game.checkCollision(this, projectile) && !projectile.free
+                && this.lives >= 1 && this.y >= 0) {
                 this.hit(1);
                 projectile.reset();
             }
         })
-        
+
         // collision detection boss/player
         if (this.game.checkCollision(this, this.game.player) && this.lives >= 1) {
             this.game.gameOver = true;
             this.lives = 0;
         }
-        
+
         // boss destroyed
         if (this.lives < 1 && this.game.spriteUpdate) {
             this.frameX++;
@@ -69,7 +69,7 @@ export class Boss {
                 if (!this.game.gameOver) this.game.newWave();
             }
         }
-        
+
         // lose condition
         if (this.y + this.height > this.game.height) this.game.gameOver = true;
     }

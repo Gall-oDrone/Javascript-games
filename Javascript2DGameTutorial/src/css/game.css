@@ -1,11 +1,165 @@
-#canvas1 {
-    border: 5px solid black;
-    background: url('https://dg-game-assets.s3.amazonaws.com/javascript/tutorial-javascript-2d-game/background.png');
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
-#beetlemorph, #rhinomorph, #player, #player_jets, #boss {
+
+/* Body styling */
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000011;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Main canvas styling - Fixed sizing */
+#canvas1 {
+    border: 5px solid #333;
+    background-color: #000011;
+    background-image: url('https://dg-game-assets.s3.amazonaws.com/javascript/tutorial-javascript-2d-game/background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    cursor: crosshair;
+    max-width: 100%;
+    max-height: 100vh;
+}
+
+/* Hide game sprites - These are loaded programmatically */
+#beetlemorph,
+#rhinomorph,
+#player,
+#player_jets,
+#boss {
+    display: none !important;
+    visibility: hidden;
+}
+
+/* Controls hint overlay */
+.controls-overlay {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.controls-overlay h3 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #00ff00;
+}
+
+.controls-overlay p {
+    margin: 2px 0;
+    font-size: 11px;
+}
+
+/* Hide controls in menu and loading states */
+body.menu-active .controls-overlay,
+body.loading-active .controls-overlay {
     display: none;
+}
+
+/* Loading screen animation */
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.5;
+    }
+}
+
+/* Menu glow effect */
+@keyframes glow {
+    0% {
+        text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+    }
+
+    50% {
+        text-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00;
+    }
+
+    100% {
+        text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+    }
+}
+
+/* Responsive design for different screen sizes */
+@media (max-width: 768px) {
+    #canvas1 {
+        width: 100vw;
+        height: 100vw;
+        max-height: 100vh;
+        border-width: 2px;
+    }
+
+    .controls-overlay {
+        font-size: 10px;
+        padding: 5px;
+    }
+
+    .controls-overlay h3 {
+        font-size: 12px;
+    }
+
+    .controls-overlay p {
+        font-size: 9px;
+    }
+}
+
+@media (max-height: 650px) {
+    #canvas1 {
+        height: calc(100vh - 20px);
+        width: calc(100vh - 20px);
+    }
+}
+
+/* Ensure proper display on retina screens */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+    #canvas1 {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: optimize-contrast;
+    }
+}
+
+/* Fullscreen styles */
+body.fullscreen {
+    margin: 0;
+    padding: 0;
+}
+
+body.fullscreen #canvas1 {
+    border: none;
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
 }
