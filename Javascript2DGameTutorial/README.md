@@ -255,7 +255,33 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
+- **Frankslaboratory** - This project is based on the excellent JavaScript 2D Game Development tutorial series by [Frankslaboratory](https://www.youtube.com/@Frankslaboratory/videos)
+- **Tutorial Video** - Specifically inspired by: [JavaScript 2D Game Development Tutorial](https://www.youtube.com/watch?v=nwPBVwtsVys&t=1200s)
 - Inspired by classic Space Invaders
 - Built with modern JavaScript best practices
 - AI agent based on game AI research
-- Deployment infrastructure following AWS AppMod Blueprints patterns 
+- Deployment infrastructure following AWS AppMod Blueprints patterns
+
+## 📺 Credits
+
+### Original Tutorial
+This project is based on the comprehensive JavaScript 2D Game Development tutorial by **Frankslaboratory**. The tutorial provides an excellent foundation for understanding:
+
+- Canvas-based game development
+- Object-oriented JavaScript for games
+- Collision detection systems
+- Game state management
+- Animation and rendering techniques
+
+**YouTube Channel**: [Frankslaboratory](https://www.youtube.com/@Frankslaboratory/videos)  
+**Tutorial Video**: [JavaScript 2D Game Development Tutorial](https://www.youtube.com/watch?v=nwPBVwtsVys&t=1200s)
+
+### Enhancements Added
+While the original tutorial provides the core game mechanics, this project includes additional features:
+
+- **AI Agent System** - Intelligent enemy behavior and player assistance
+- **Enhanced Enemy Types** - Multiple enemy classes with unique behaviors
+- **Advanced Weapon System** - Multiple weapon types with energy management
+- **Wave-based Progression** - Dynamic difficulty scaling
+- **Production Deployment** - Complete AWS EKS infrastructure
+- **Modern Development Tools** - Docker, Terraform, and CI/CD integration 
