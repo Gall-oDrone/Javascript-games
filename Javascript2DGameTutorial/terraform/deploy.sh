@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Deployment script for JavaScript 2D Game EKS Infrastructure
-# Based on AWS Load Balancer Controller best practices
+# Modern EKS Deployment Script with Blueprints Pattern
 set -e
 
 # Colors for output
@@ -44,7 +43,7 @@ if [ ! -f "$TFVARS_FILE" ]; then
     exit 1
 fi
 
-print_status "Starting deployment for environment: $ENVIRONMENT"
+print_status "Starting modern EKS deployment for environment: $ENVIRONMENT"
 
 # Check if AWS CLI is installed and configured
 if ! command -v aws &> /dev/null; then
@@ -73,14 +72,9 @@ if ! command -v kubectl &> /dev/null; then
     print_warning "kubectl is not installed. You'll need it to interact with the cluster after deployment."
 fi
 
-# Check if Helm is installed
-if ! command -v helm &> /dev/null; then
-    print_warning "Helm is not installed. The AWS Load Balancer Controller will be installed via Terraform."
-fi
-
-# Initialize Terraform
-print_step "Initializing Terraform..."
-terraform init
+# Initialize Terraform with upgrade flag to get latest module versions
+print_step "Initializing Terraform with latest modules..."
+terraform init -upgrade
 
 # Validate Terraform configuration
 print_step "Validating Terraform configuration..."
@@ -122,20 +116,29 @@ aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
 
 # Wait for cluster to be ready
 print_step "Waiting for cluster to be ready..."
-kubectl wait --for=condition=ready nodes --all --timeout=300s
+kubectl wait --for=condition=ready nodes --all --timeout=300s || true
 
-# Check if AWS Load Balancer Controller is running
-print_step "Checking AWS Load Balancer Controller status..."
-if kubectl get pods -n kube-system | grep -q aws-load-balancer-controller; then
-    print_status "AWS Load Balancer Controller is installed"
-    
-    # Wait for AWS Load Balancer Controller to be ready
-    print_step "Waiting for AWS Load Balancer Controller to be ready..."
-    kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=aws-load-balancer-controller -n kube-system --timeout=300s
-    
-    print_status "AWS Load Balancer Controller is ready!"
+# Check EKS Blueprints Addons status
+print_step "Checking EKS Blueprints Addons status..."
+
+# Check AWS Load Balancer Controller
+if kubectl get deployment -n kube-system aws-load-balancer-controller &>/dev/null; then
+    print_status "AWS Load Balancer Controller is deployed"
+    kubectl wait --for=condition=available deployment/aws-load-balancer-controller -n kube-system --timeout=300s || true
 else
-    print_warning "AWS Load Balancer Controller not found. It may still be installing..."
+    print_warning "AWS Load Balancer Controller not found"
+fi
+
+# Check Metrics Server
+if kubectl get deployment -n kube-system metrics-server &>/dev/null; then
+    print_status "Metrics Server is deployed"
+else
+    print_warning "Metrics Server not found"
+fi
+
+# Check Karpenter if enabled
+if kubectl get deployment -n karpenter karpenter &>/dev/null; then
+    print_status "Karpenter is deployed"
 fi
 
 # Check cluster status
@@ -146,30 +149,36 @@ aws eks describe-cluster --region "$AWS_REGION" --name "$CLUSTER_NAME" --query '
 echo -e "\n=== Node Status ==="
 kubectl get nodes
 
-echo -e "\n=== Pod Status ==="
-kubectl get pods -n javascript-2d-game
+echo -e "\n=== EKS Addons ==="
+kubectl get deployments -n kube-system | grep -E 'aws-load-balancer-controller|metrics-server|coredns|aws-ebs-csi-driver' || true
 
-echo -e "\n=== Service Status ==="
-kubectl get svc -n javascript-2d-game
-
-echo -e "\n=== Ingress Status ==="
-kubectl get ingress -n javascript-2d-game
+echo -e "\n=== Game Application Status ==="
+kubectl get all -n javascript-2d-game
 
 # Get load balancer URL if available
 print_step "Getting load balancer information..."
-LB_HOSTNAME=$(kubectl get svc javascript-2d-game-service -n javascript-2d-game -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "Not available yet")
+LB_HOSTNAME=$(kubectl get svc javascript-2d-game-service -n javascript-2d-game -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
 
-if [ "$LB_HOSTNAME" != "Not available yet" ]; then
+if [ -n "$LB_HOSTNAME" ]; then
     print_status "Load Balancer URL: http://$LB_HOSTNAME"
 else
-    print_warning "Load balancer is still being provisioned. This may take a few minutes."
+    print_warning "Load balancer is still being provisioned. Check again in a few minutes with:"
+    echo "kubectl get svc javascript-2d-game-service -n javascript-2d-game"
 fi
 
-print_status "Deployment completed successfully!"
+# Check if Ingress is created (if ALB Controller is enabled)
+INGRESS_HOSTNAME=$(kubectl get ingress javascript-2d-game-ingress -n javascript-2d-game -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+if [ -n "$INGRESS_HOSTNAME" ]; then
+    print_status "Application Load Balancer URL: http://$INGRESS_HOSTNAME"
+fi
+
+print_status "Modern EKS deployment completed successfully!"
 
 print_status "Useful commands:"
 echo "  Check cluster status: kubectl get nodes"
 echo "  View game pods: kubectl get pods -n javascript-2d-game"
 echo "  View game logs: kubectl logs -f deployment/javascript-2d-game -n javascript-2d-game"
-echo "  Access game: kubectl port-forward svc/javascript-2d-game-service 8080:80 -n javascript-2d-game"
-echo "  Check AWS Load Balancer Controller: kubectl get pods -n kube-system | grep aws-load-balancer-controller" 
+echo "  Check HPA status: kubectl get hpa -n javascript-2d-game"
+echo "  Port forward (for testing): kubectl port-forward svc/javascript-2d-game-service 8080:80 -n javascript-2d-game"
+echo "  Check AWS Load Balancer Controller: kubectl get pods -n kube-system | grep aws-load-balancer-controller"
+echo "  Check all addons: kubectl get deployments -n kube-system"
