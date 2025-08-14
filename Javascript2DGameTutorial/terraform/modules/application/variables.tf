@@ -33,6 +33,12 @@ variable "namespace" {
   default     = "javascript-2d-game"
 }
 
+variable "replicas" {
+  description = "Number of application replicas"
+  type        = number
+  default     = 2
+}
+
 variable "game_replicas" {
   description = "Number of game replicas"
   type        = number

@@ -1,40 +1,6 @@
 # Application Module for JavaScript 2D Game
 # Following AWS Blueprints best practices
 
-# ECR Repository for the game
-resource "aws_ecr_repository" "game" {
-  name                 = "${var.project_name}-game"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = var.tags
-}
-
-# ECR Lifecycle Policy
-resource "aws_ecr_lifecycle_policy" "game" {
-  repository = aws_ecr_repository.game.name
-
-  policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "Keep last 5 images"
-        selection = {
-          tagStatus     = "untagged"
-          countType     = "imageCountMoreThan"
-          countNumber   = 5
-        }
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
-}
-
 # Kubernetes Namespace
 resource "kubernetes_namespace" "game" {
   metadata {
@@ -75,7 +41,7 @@ resource "kubernetes_deployment" "game" {
 
       spec {
         container {
-          image = "${aws_ecr_repository.game.repository_url}:${var.image_tag}"
+          image = "${var.ecr_repository_url}:${var.image_tag}"
           name  = var.app_name
 
           port {

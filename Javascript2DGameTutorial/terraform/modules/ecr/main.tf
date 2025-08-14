@@ -40,23 +40,9 @@ resource "aws_ecr_lifecycle_policy" "this" {
 
   policy = jsonencode({
     rules = concat(
-      # Keep last N images
-      var.max_image_count > 0 ? [{
-        rulePriority = 10
-        description  = "Keep last ${var.max_image_count} images"
-        selection = {
-          tagStatus     = "any"
-          countType     = "imageCountMoreThan"
-          countNumber   = var.max_image_count
-        }
-        action = {
-          type = "expire"
-        }
-      }] : [],
-      
-      # Remove untagged images after N days
+      # Remove untagged images after N days (higher priority)
       var.untagged_image_expiry_days > 0 ? [{
-        rulePriority = 20
+        rulePriority = 1
         description  = "Remove untagged images after ${var.untagged_image_expiry_days} days"
         selection = {
           tagStatus     = "untagged"
@@ -69,10 +55,10 @@ resource "aws_ecr_lifecycle_policy" "this" {
         }
       }] : [],
       
-      # Keep only N tagged images with specific prefixes
+      # Keep only N tagged images with specific prefixes (medium priority)
       length(var.protected_tags) > 0 ? [
         for idx, tag in var.protected_tags : {
-          rulePriority = 30 + idx
+          rulePriority = 2 + idx
           description  = "Protect images with tag ${tag}"
           selection = {
             tagStatus     = "tagged"
@@ -84,7 +70,21 @@ resource "aws_ecr_lifecycle_policy" "this" {
             type = "expire"
           }
         }
-      ] : []
+      ] : [],
+      
+      # Keep last N images (lowest priority - must be last for tagStatus=any)
+      var.max_image_count > 0 ? [{
+        rulePriority = 100
+        description  = "Keep last ${var.max_image_count} images"
+        selection = {
+          tagStatus     = "any"
+          countType     = "imageCountMoreThan"
+          countNumber   = var.max_image_count
+        }
+        action = {
+          type = "expire"
+        }
+      }] : []
     )
   })
 }

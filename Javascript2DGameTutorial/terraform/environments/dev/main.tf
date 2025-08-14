@@ -36,7 +36,7 @@ module "vpc" {
   name         = "${var.project_name}-${local.environment}"
   cidr         = var.vpc_cidr
   environment  = local.environment
-  cluster_name = "${var.cluster_name}-${local.environment}"  # Add this for EKS subnet tagging
+  cluster_name = var.cluster_name  # Use cluster name directly
   
   # Optional: Configure NAT gateways based on environment
   single_nat_gateway = local.environment == "dev" ? true : false  # Use single NAT in dev to save costs
@@ -48,7 +48,7 @@ module "vpc" {
 module "eks" {
   source = "../../modules/eks"
   
-  cluster_name        = "${var.cluster_name}-${local.environment}"
+  cluster_name        = var.cluster_name
   kubernetes_version  = var.kubernetes_version  # Changed from cluster_version
   vpc_id              = module.vpc.vpc_id
   private_subnet_ids  = module.vpc.private_subnets  # Changed from subnet_ids
@@ -69,25 +69,6 @@ module "eks" {
   
   environment = local.environment
   tags        = local.tags
-}
-
-# IAM Role for EBS CSI Driver
-module "ebs_csi_driver_irsa" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.30"
-
-  role_name = "${var.cluster_name}-${local.environment}-ebs-csi-driver"
-
-  attach_ebs_csi_policy = true
-
-  oidc_providers = {
-    main = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
-    }
-  }
-
-  tags = local.tags
 }
 
 # Addons Module - with proper configuration
@@ -141,6 +122,7 @@ module "application" {
   # Application configuration
   app_name                    = "${var.project_name}-${local.environment}"
   namespace                   = "${var.project_name}-${local.environment}"
+  replicas                   = var.game_replicas
   game_replicas              = var.game_replicas
   container_cpu_limit        = var.container_cpu_limit
   container_memory_limit     = var.container_memory_limit

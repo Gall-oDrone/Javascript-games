@@ -62,5 +62,5 @@ output "update_kubeconfig_command" {
 
 output "ebs_csi_driver_iam_role_arn" {
   description = "ARN of the EBS CSI Driver IAM role"
-  value       = module.ebs_csi_driver_irsa.iam_role_arn
+  value       = module.eks.ebs_csi_driver_iam_role_arn
 }
