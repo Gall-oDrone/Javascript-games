@@ -2,6 +2,12 @@
 environment = "dev"
 aws_region  = "us-west-2"
 
+# Project Configuration
+project_name = "javascript-2d-game"
+
+# VPC Configuration
+vpc_cidr = "10.0.0.0/16"
+
 # EKS Cluster Configuration
 cluster_name        = "javascript-2d-game-dev"
 kubernetes_version  = "1.33"  # Use supported version
@@ -25,6 +31,7 @@ enable_karpenter                   = false  # Advanced autoscaling - optional
 enable_aws_cloudwatch_metrics      = false  # Can enable for production
 enable_cert_manager                = false  # For TLS management
 aws_load_balancer_controller_chart_version = "1.6.2"
+metrics_server_chart_version               = "6.4.1"
 
 # Autoscaling Configuration
 enable_autoscaling = true

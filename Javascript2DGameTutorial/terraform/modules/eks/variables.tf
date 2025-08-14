@@ -1,30 +1,18 @@
+# modules/eks/variables.tf - EKS Module Variables
+
 variable "cluster_name" {
   description = "Name of the EKS cluster"
   type        = string
 }
 
 variable "kubernetes_version" {
-  description = "Kubernetes version for EKS cluster"
+  description = "Kubernetes version to use for the EKS cluster"
   type        = string
   default     = "1.33"
-  validation {
-    condition     = contains(["1.28", "1.29", "1.30", "1.31", "1.33"], var.kubernetes_version)
-    error_message = "Kubernetes version must be one of: 1.28, 1.29, 1.30, 1.31, 1.33"
-  }
-}
-
-variable "authentication_mode" {
-  description = "EKS authentication mode (API, CONFIG_MAP, or API_AND_CONFIG_MAP)"
-  type        = string
-  default     = "API_AND_CONFIG_MAP"
-  validation {
-    condition     = contains(["API", "CONFIG_MAP", "API_AND_CONFIG_MAP"], var.authentication_mode)
-    error_message = "Authentication mode must be one of: API, CONFIG_MAP, API_AND_CONFIG_MAP"
-  }
 }
 
 variable "vpc_id" {
-  description = "VPC ID where the EKS cluster will be created"
+  description = "VPC ID where the cluster will be deployed"
   type        = string
 }
 
@@ -33,35 +21,100 @@ variable "private_subnet_ids" {
   type        = list(string)
 }
 
+# Node group configuration
+variable "node_group_desired_size" {
+  description = "Desired number of nodes"
+  type        = number
+  default     = 2
+}
+
+variable "node_group_min_size" {
+  description = "Minimum number of nodes"
+  type        = number
+  default     = 2
+}
+
+variable "node_group_max_size" {
+  description = "Maximum number of nodes"
+  type        = number
+  default     = 4
+}
+
+variable "node_group_instance_types" {
+  description = "List of instance types for the node group"
+  type        = list(string)
+  default     = ["t3.medium"]
+}
+
+variable "node_group_disk_size" {
+  description = "Disk size in GB for worker nodes"
+  type        = number
+  default     = 50
+}
+
+variable "node_group_ami_type" {
+  description = "AMI type for the node group"
+  type        = string
+  default     = "AL2023_x86_64_STANDARD"
+}
+
+# Node Groups Map (alternative to individual parameters)
 variable "node_groups" {
   description = "Map of EKS managed node groups"
   type        = map(any)
-  default = {
-    general = {
-      min_size     = 2
-      max_size     = 4
-      desired_size = 2
+  default     = {}
+}
 
-      instance_types = ["t3.medium"]
-      capacity_type  = "ON_DEMAND"
-      
-      ami_type = "AL2023_x86_64_STANDARD"
-      platform = "linux"
-      
-      disk_size = 50
-      
-      create_iam_role = true
-      iam_role_name   = "eks-node-group-role"
-      iam_role_use_name_prefix = false
-      iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-      }
-    }
-  }
+variable "authentication_mode" {
+  description = "The authentication mode for the cluster"
+  type        = string
+  default     = "API_AND_CONFIG_MAP"
+}
+
+variable "cluster_addons" {
+  description = "Map of cluster addon configurations"
+  type        = any
+  default     = {}
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
 }
 
 variable "tags" {
-  description = "Tags to apply to all resources"
+  description = "A map of tags to add to all resources"
   type        = map(string)
   default     = {}
+}
+
+# Additional configurations
+variable "enable_irsa" {
+  description = "Enable IAM Roles for Service Accounts"
+  type        = bool
+  default     = true
+}
+
+variable "enable_cluster_creator_admin_permissions" {
+  description = "Enable admin permissions for cluster creator"
+  type        = bool
+  default     = true
+}
+
+variable "cluster_endpoint_public_access" {
+  description = "Enable public API server endpoint"
+  type        = bool
+  default     = true
+}
+
+variable "cluster_endpoint_private_access" {
+  description = "Enable private API server endpoint"
+  type        = bool
+  default     = false
+}
+
+variable "cluster_endpoint_public_access_cidrs" {
+  description = "List of CIDR blocks that can access the public API server endpoint"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
 }

@@ -1,4 +1,5 @@
-# variables.tf - Modern EKS Configuration Variables
+# Development Environment Variables
+# This file declares all variables used by the dev environment
 
 variable "aws_region" {
   description = "AWS region to deploy resources"
@@ -38,7 +39,7 @@ variable "cluster_name" {
 variable "kubernetes_version" {
   description = "Kubernetes version for EKS cluster"
   type        = string
-  default     = "1.33"  # Changed from 1.33 to supported version
+  default     = "1.33"
   validation {
     condition     = contains(["1.28", "1.29", "1.30", "1.31", "1.33"], var.kubernetes_version)
     error_message = "Kubernetes version must be one of: 1.28, 1.29, 1.30, 1.31, 1.33"
@@ -79,7 +80,7 @@ variable "node_group_desired_size" {
 variable "node_group_min_size" {
   description = "Minimum number of nodes in EKS node group"
   type        = number
-  default     = 2  # Changed from 1 to 2 for HA
+  default     = 2
 }
 
 variable "node_group_max_size" {

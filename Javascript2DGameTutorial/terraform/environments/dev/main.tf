@@ -1,15 +1,5 @@
 # environments/dev/main.tf - Development Environment Main Configuration
 
-terraform {
-  required_version = ">= 1.3.0"
-  
-  backend "s3" {
-    bucket = "javascript-2d-game-terraform-state"
-    key    = "dev/terraform.tfstate"
-    region = "us-west-2"
-  }
-}
-
 # Local variables for this environment
 locals {
   environment = "dev"
@@ -59,9 +49,9 @@ module "eks" {
   source = "../../modules/eks"
   
   cluster_name        = "${var.cluster_name}-${local.environment}"
-  cluster_version     = var.kubernetes_version
+  kubernetes_version  = var.kubernetes_version  # Changed from cluster_version
   vpc_id              = module.vpc.vpc_id
-  subnet_ids          = module.vpc.private_subnets
+  private_subnet_ids  = module.vpc.private_subnets  # Changed from subnet_ids
   
   # Node group configuration
   node_group_desired_size   = var.node_group_desired_size

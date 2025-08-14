@@ -1,6 +1,43 @@
 # EKS Module for Kubernetes Cluster
 # Following AWS Blueprints best practices
 
+# Local variables to handle node groups configuration
+locals {
+  # If node_groups is provided, use it; otherwise, construct from individual parameters
+  eks_managed_node_groups = length(var.node_groups) > 0 ? var.node_groups : {
+    general = {
+      min_size     = var.node_group_min_size
+      max_size     = var.node_group_max_size
+      desired_size = var.node_group_desired_size
+
+      instance_types = var.node_group_instance_types
+      capacity_type  = "ON_DEMAND"
+      
+      ami_type = var.node_group_ami_type
+      platform = "linux"
+      
+      disk_size = var.node_group_disk_size
+      
+      create_iam_role = true
+      iam_role_name   = "${var.cluster_name}-node-group-role"
+      iam_role_use_name_prefix = false
+      iam_role_additional_policies = {
+        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      }
+
+      labels = {
+        Environment = var.environment
+        Project     = "javascript-2d-game"
+      }
+
+      tags = merge(var.tags, {
+        Environment = var.environment
+        Project     = "javascript-2d-game"
+      })
+    }
+  }
+}
+
 # KMS Key for EKS encryption
 resource "aws_kms_key" "eks" {
   description             = "EKS Secret Encryption Key"
@@ -49,7 +86,7 @@ module "eks" {
   }
 
   # EKS Managed Node Groups
-  eks_managed_node_groups = var.node_groups
+  eks_managed_node_groups = local.eks_managed_node_groups
 
   tags = var.tags
 }
