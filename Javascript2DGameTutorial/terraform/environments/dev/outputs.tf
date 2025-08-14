@@ -60,11 +60,6 @@ output "update_kubeconfig_command" {
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
 
-output "cluster_oidc_issuer_url" {
-  description = "The URL on the EKS cluster for the OpenID Connect identity provider"
-  value       = module.eks.cluster_oidc_issuer_url
-}
-
 output "ebs_csi_driver_iam_role_arn" {
   description = "ARN of the EBS CSI Driver IAM role"
   value       = module.ebs_csi_driver_irsa.iam_role_arn

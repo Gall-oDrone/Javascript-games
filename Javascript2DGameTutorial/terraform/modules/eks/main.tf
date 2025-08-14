@@ -72,10 +72,6 @@ module "eks" {
   # Enable cluster creator admin permissions
   enable_cluster_creator_admin_permissions = true
 
-  # Don't manage aws-auth directly
-  create_aws_auth_configmap = false
-  manage_aws_auth_configmap = false
-
   # Enable IRSA
   enable_irsa = true
 

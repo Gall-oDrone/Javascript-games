@@ -21,6 +21,18 @@ variable "environment" {
 }
 
 # Application configuration
+variable "app_name" {
+  description = "Name of the application"
+  type        = string
+  default     = "javascript-2d-game"
+}
+
+variable "namespace" {
+  description = "Kubernetes namespace for the application"
+  type        = string
+  default     = "javascript-2d-game"
+}
+
 variable "game_replicas" {
   description = "Number of game replicas"
   type        = number

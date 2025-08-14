@@ -139,11 +139,13 @@ module "application" {
   ecr_repository_url = module.ecr.repository_url
   
   # Application configuration
-  game_replicas            = var.game_replicas
-  container_cpu_limit      = var.container_cpu_limit
-  container_memory_limit   = var.container_memory_limit
-  container_cpu_request    = var.container_cpu_request
-  container_memory_request = var.container_memory_request
+  app_name                    = "${var.project_name}-${local.environment}"
+  namespace                   = "${var.project_name}-${local.environment}"
+  game_replicas              = var.game_replicas
+  container_cpu_limit        = var.container_cpu_limit
+  container_memory_limit     = var.container_memory_limit
+  container_cpu_request      = var.container_cpu_request
+  container_memory_request   = var.container_memory_request
   
   # Autoscaling
   enable_autoscaling = var.enable_autoscaling
@@ -156,35 +158,4 @@ module "application" {
   tags        = local.tags
   
   depends_on = [module.eks, module.addons]
-}
-
-# Outputs
-output "cluster_endpoint" {
-  description = "Endpoint for EKS control plane"
-  value       = module.eks.cluster_endpoint
-}
-
-output "cluster_name" {
-  description = "Name of the EKS cluster"
-  value       = module.eks.cluster_name
-}
-
-output "ecr_repository_url" {
-  description = "URL of the ECR repository"
-  value       = module.ecr.repository_url
-}
-
-output "vpc_id" {
-  description = "ID of the VPC"
-  value       = module.vpc.vpc_id
-}
-
-output "load_balancer_hostname" {
-  description = "Hostname of the load balancer"
-  value       = module.application.load_balancer_hostname
-}
-
-output "update_kubeconfig_command" {
-  description = "Command to update kubeconfig"
-  value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
