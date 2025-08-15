@@ -38,7 +38,8 @@ variable "cluster_addons" {
     addon_version        = optional(string, null)
     configuration_values = optional(string, null)  # Should be a JSON string
     preserve             = optional(bool, true)
-    resolve_conflicts    = optional(string, "OVERWRITE")
+    resolve_conflicts_on_create = optional(string, "OVERWRITE")
+    resolve_conflicts_on_update = optional(string, "OVERWRITE")
     service_account_role_arn = optional(string, null)
   }))
   default = {}

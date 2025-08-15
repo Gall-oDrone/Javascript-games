@@ -15,10 +15,6 @@ locals {
     kube-proxy = {
       most_recent = true
     }
-    aws-ebs-csi-driver = {
-      most_recent = true
-      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
-    }
   }
   
   tags = merge(

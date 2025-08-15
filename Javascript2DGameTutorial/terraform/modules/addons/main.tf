@@ -10,7 +10,8 @@ resource "aws_eks_addon" "this" {
   addon_version            = each.value.addon_version
   configuration_values     = each.value.configuration_values
   preserve                 = each.value.preserve
-  resolve_conflicts        = each.value.resolve_conflicts
+  resolve_conflicts_on_create = each.value.resolve_conflicts_on_create
+  resolve_conflicts_on_update = each.value.resolve_conflicts_on_update
   service_account_role_arn = each.value.service_account_role_arn
 
   tags = var.tags
@@ -52,6 +53,12 @@ resource "kubernetes_service_account" "aws_load_balancer_controller" {
       "eks.amazonaws.com/role-arn" = module.aws_load_balancer_controller_irsa[0].iam_role_arn
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["eks.amazonaws.com/role-arn"]
+    ]
+  }
 }
 
 # AWS Load Balancer Controller Helm Release
@@ -63,6 +70,8 @@ resource "helm_release" "aws_load_balancer_controller" {
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
   version    = var.aws_load_balancer_controller_chart_version
+
+  timeout = 600  # 10 minutes timeout
 
   set {
     name  = "clusterName"
@@ -111,6 +120,13 @@ resource "helm_release" "aws_load_balancer_controller" {
   depends_on = [
     kubernetes_service_account.aws_load_balancer_controller
   ]
+
+  lifecycle {
+    ignore_changes = [
+      set[0].value,  # clusterName
+      set[3].value   # vpcId
+    ]
+  }
 }
 
 # Metrics Server Helm Release
@@ -118,17 +134,34 @@ resource "helm_release" "metrics_server" {
   count = var.enable_metrics_server ? 1 : 0
 
   name       = "metrics-server"
-  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  repository = "https://charts.bitnami.com/bitnami"
   chart      = "metrics-server"
   namespace  = "kube-system"
   version    = var.metrics_server_chart_version
 
-  set {
-    name  = "args[0]"
-    value = "--kubelet-insecure-tls"
-  }
+  timeout = 500
 
-  # Merge additional values if provided
+  values = [
+    yamlencode({
+      args = [
+        "--secure-port=4443",
+        "--kubelet-insecure-tls",
+        "--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname"
+      ],
+      containerPorts = {
+        https = 4443
+      },
+      service = {
+        ports = {
+          https = 443
+        },
+        targetPorts = {
+          https = 4443
+        }
+      }
+    })
+  ]
+
   dynamic "set" {
     for_each = try(var.metrics_server_values, {})
     content {
@@ -136,7 +169,14 @@ resource "helm_release" "metrics_server" {
       value = set.value
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      values
+    ]
+  }
 }
+
 
 # IAM Role for Karpenter
 module "karpenter_irsa" {
@@ -172,6 +212,8 @@ resource "helm_release" "karpenter" {
   repository = "oci://public.ecr.aws/karpenter"
   chart      = "karpenter"
   version    = var.karpenter_chart_version
+
+  timeout = 600  # 10 minutes timeout
 
   set {
     name  = "settings.clusterName"
@@ -210,6 +252,15 @@ resource "helm_release" "karpenter" {
   depends_on = [
     module.karpenter_irsa
   ]
+
+  lifecycle {
+    ignore_changes = [
+      set[0].value,  # settings.clusterName
+      set[1].value,  # settings.clusterEndpoint
+      set[3].value,  # settings.defaultInstanceProfile
+      set[4].value   # settings.interruptionQueueName
+    ]
+  }
 }
 
 # Cert Manager Helm Release
@@ -236,6 +287,12 @@ resource "helm_release" "cert_manager" {
       name  = set.key
       value = set.value
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      values
+    ]
   }
 }
 
