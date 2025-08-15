@@ -67,6 +67,13 @@ module "eks" {
   tags        = local.tags
 }
 
+# Time delay to ensure EKS cluster is fully operational
+resource "time_sleep" "wait_for_eks" {
+  depends_on = [module.eks]
+  
+  create_duration = "30s"
+}
+
 # Addons Module - with proper configuration
 module "addons" {
   source = "../../modules/addons"
@@ -94,7 +101,10 @@ module "addons" {
   
   tags = local.tags
   
-  depends_on = [module.eks]
+  depends_on = [
+    module.eks,
+    time_sleep.wait_for_eks
+  ]
 }
 
 # ECR Module

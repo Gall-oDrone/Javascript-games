@@ -59,6 +59,8 @@ resource "kubernetes_service_account" "aws_load_balancer_controller" {
       metadata[0].annotations["eks.amazonaws.com/role-arn"]
     ]
   }
+
+  depends_on = [module.aws_load_balancer_controller_irsa]
 }
 
 # AWS Load Balancer Controller Helm Release
@@ -118,13 +120,13 @@ resource "helm_release" "aws_load_balancer_controller" {
   }
 
   depends_on = [
-    kubernetes_service_account.aws_load_balancer_controller
+    kubernetes_service_account.aws_load_balancer_controller,
+    aws_eks_addon.this
   ]
 
   lifecycle {
     ignore_changes = [
-      set[0].value,  # clusterName
-      set[3].value   # vpcId
+      set
     ]
   }
 }
@@ -170,9 +172,14 @@ resource "helm_release" "metrics_server" {
     }
   }
 
+  depends_on = [
+    aws_eks_addon.this
+  ]
+
   lifecycle {
     ignore_changes = [
-      values
+      values,
+      set
     ]
   }
 }
@@ -255,10 +262,7 @@ resource "helm_release" "karpenter" {
 
   lifecycle {
     ignore_changes = [
-      set[0].value,  # settings.clusterName
-      set[1].value,  # settings.clusterEndpoint
-      set[3].value,  # settings.defaultInstanceProfile
-      set[4].value   # settings.interruptionQueueName
+      set
     ]
   }
 }
@@ -291,7 +295,8 @@ resource "helm_release" "cert_manager" {
 
   lifecycle {
     ignore_changes = [
-      values
+      values,
+      set
     ]
   }
 }
