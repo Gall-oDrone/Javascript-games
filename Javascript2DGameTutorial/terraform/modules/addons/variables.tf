@@ -30,20 +30,7 @@ variable "aws_region" {
   type        = string
 }
 
-# EKS Native Addons Configuration
-variable "cluster_addons" {
-  description = "Map of cluster addon configurations"
-  type = map(object({
-    most_recent          = optional(bool, true)
-    addon_version        = optional(string, null)
-    configuration_values = optional(string, null)  # Should be a JSON string
-    preserve             = optional(bool, true)
-    resolve_conflicts_on_create = optional(string, "OVERWRITE")
-    resolve_conflicts_on_update = optional(string, "OVERWRITE")
-    service_account_role_arn = optional(string, null)
-  }))
-  default = {}
-}
+
 
 # AWS Load Balancer Controller Configuration
 variable "enable_aws_load_balancer_controller" {

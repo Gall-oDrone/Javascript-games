@@ -71,7 +71,16 @@ module "eks" {
 resource "time_sleep" "wait_for_eks" {
   depends_on = [module.eks]
   
-  create_duration = "30s"
+  create_duration = "90s"
+}
+
+# Null resource to ensure cluster is ready
+resource "null_resource" "wait_for_cluster" {
+  depends_on = [time_sleep.wait_for_eks]
+
+  provisioner "local-exec" {
+    command = "aws eks wait cluster-active --name ${var.cluster_name} --region ${var.aws_region}"
+  }
 }
 
 # Addons Module - with proper configuration
@@ -96,14 +105,12 @@ module "addons" {
   aws_load_balancer_controller_chart_version = var.aws_load_balancer_controller_chart_version
   metrics_server_chart_version               = var.metrics_server_chart_version
   
-  # Pass the native cluster addons
-  cluster_addons = local.cluster_addons
-  
   tags = local.tags
   
   depends_on = [
     module.eks,
-    time_sleep.wait_for_eks
+    time_sleep.wait_for_eks,
+    null_resource.wait_for_cluster
   ]
 }
 

@@ -1,22 +1,5 @@
 # modules/addons/main.tf - EKS Addons Module Implementation
 
-# EKS Native Addons
-resource "aws_eks_addon" "this" {
-  for_each = var.cluster_addons
-
-  cluster_name = var.cluster_name
-  addon_name   = each.key
-
-  addon_version            = each.value.addon_version
-  configuration_values     = each.value.configuration_values
-  preserve                 = each.value.preserve
-  resolve_conflicts_on_create = each.value.resolve_conflicts_on_create
-  resolve_conflicts_on_update = each.value.resolve_conflicts_on_update
-  service_account_role_arn = each.value.service_account_role_arn
-
-  tags = var.tags
-}
-
 # IAM Role for AWS Load Balancer Controller
 module "aws_load_balancer_controller_irsa" {
   count = var.enable_aws_load_balancer_controller ? 1 : 0
@@ -61,6 +44,9 @@ resource "kubernetes_service_account" "aws_load_balancer_controller" {
   }
 
   depends_on = [module.aws_load_balancer_controller_irsa]
+
+  # Add provider configuration to ensure proper authentication
+  provider = kubernetes
 }
 
 # AWS Load Balancer Controller Helm Release
@@ -120,8 +106,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   }
 
   depends_on = [
-    kubernetes_service_account.aws_load_balancer_controller,
-    aws_eks_addon.this
+    kubernetes_service_account.aws_load_balancer_controller
   ]
 
   lifecycle {
@@ -129,6 +114,9 @@ resource "helm_release" "aws_load_balancer_controller" {
       set
     ]
   }
+
+  # Add provider configuration to ensure proper authentication
+  provider = helm
 }
 
 # Metrics Server Helm Release
@@ -172,16 +160,15 @@ resource "helm_release" "metrics_server" {
     }
   }
 
-  depends_on = [
-    aws_eks_addon.this
-  ]
-
   lifecycle {
     ignore_changes = [
       values,
       set
     ]
   }
+
+  # Add provider configuration to ensure proper authentication
+  provider = helm
 }
 
 

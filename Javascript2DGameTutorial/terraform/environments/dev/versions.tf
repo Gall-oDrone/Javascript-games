@@ -26,6 +26,10 @@ terraform {
       source  = "hashicorp/time"
       version = "~> 0.9"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
   }
 }
 
@@ -43,25 +47,9 @@ provider "aws" {
   }
 }
 
-# Data source to get EKS cluster information
-data "aws_eks_cluster" "cluster" {
-  name = var.cluster_name
-  depends_on = [module.eks]
-}
-
-# Get EKS cluster auth token
-data "aws_eks_cluster_auth" "cluster" {
-  name = var.cluster_name
-  depends_on = [module.eks]
-}
-
-# Configure Kubernetes Provider with proper dependency handling
+# Configure Kubernetes Provider with EKS exec configuration
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-
-  # Add proper configuration for EKS
+  # Use exec configuration for EKS authentication
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
@@ -76,14 +64,10 @@ provider "kubernetes" {
   }
 }
 
-# Configure Helm Provider with proper dependency handling
+# Configure Helm Provider with EKS exec configuration
 provider "helm" {
   kubernetes {
-    host                   = data.aws_eks_cluster.cluster.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.cluster.token
-
-    # Add proper configuration for EKS
+    # Use exec configuration for EKS authentication
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"

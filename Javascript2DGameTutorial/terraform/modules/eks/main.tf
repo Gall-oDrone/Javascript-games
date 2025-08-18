@@ -84,6 +84,9 @@ module "eks" {
   # EKS Managed Node Groups
   eks_managed_node_groups = local.eks_managed_node_groups
 
+  # EKS Addons
+  cluster_addons = var.cluster_addons
+
   tags = var.tags
 }
 
