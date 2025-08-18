@@ -70,6 +70,57 @@ variable "metrics_server_values" {
   default     = {}
 }
 
+# Prometheus Stack Configuration
+variable "enable_prometheus_stack" {
+  description = "Enable Prometheus, Grafana, and Alertmanager stack"
+  type        = bool
+  default     = false
+}
+
+variable "prometheus_stack_chart_version" {
+  description = "Chart version for kube-prometheus-stack"
+  type        = string
+  default     = "51.3.0"
+}
+
+variable "prometheus_stack_values" {
+  description = "Additional values for Prometheus stack Helm chart"
+  type        = any
+  default     = {}
+}
+
+# Grafana specific configuration
+variable "enable_grafana_ingress" {
+  description = "Enable ingress for Grafana"
+  type        = bool
+  default     = false
+}
+
+variable "grafana_hostname" {
+  description = "Hostname for Grafana ingress (e.g., grafana.example.com)"
+  type        = string
+  default     = ""
+}
+
+variable "grafana_admin_password" {
+  description = "Admin password for Grafana (leave empty to generate random)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "prometheus_storage_size" {
+  description = "Storage size for Prometheus data"
+  type        = string
+  default     = "10Gi"
+}
+
+variable "grafana_storage_size" {
+  description = "Storage size for Grafana data"
+  type        = string
+  default     = "5Gi"
+}
+
 # Karpenter Configuration
 variable "enable_karpenter" {
   description = "Enable Karpenter for node autoscaling"

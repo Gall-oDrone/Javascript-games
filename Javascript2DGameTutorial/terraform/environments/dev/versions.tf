@@ -28,7 +28,11 @@ terraform {
     }
     null = {
       source  = "hashicorp/null"
-      version = "~> 3.0"
+      version = "~> 3.2"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
     }
   }
 }
@@ -47,9 +51,11 @@ provider "aws" {
   }
 }
 
-# Configure Kubernetes Provider with EKS exec configuration
+# Configure Kubernetes Provider - with conditional configuration
 provider "kubernetes" {
-  # Use exec configuration for EKS authentication
+  host                   = try(module.eks.cluster_endpoint, "")
+  cluster_ca_certificate = try(base64decode(module.eks.cluster_certificate_authority_data), "")
+  
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
@@ -64,10 +70,12 @@ provider "kubernetes" {
   }
 }
 
-# Configure Helm Provider with EKS exec configuration
+# Configure Helm Provider - with conditional configuration
 provider "helm" {
   kubernetes {
-    # Use exec configuration for EKS authentication
+    host                   = try(module.eks.cluster_endpoint, "")
+    cluster_ca_certificate = try(base64decode(module.eks.cluster_certificate_authority_data), "")
+    
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"

@@ -32,6 +32,12 @@ enable_aws_cloudwatch_metrics      = false  # Can enable for production
 enable_cert_manager                = false  # For TLS management
 aws_load_balancer_controller_chart_version = "1.6.2"
 metrics_server_chart_version               = "6.4.1"
+enable_prometheus_stack = true
+enable_grafana_ingress = false  # Set to true if you want to use ALB
+grafana_hostname = ""  # Set to your domain if using ingress
+grafana_admin_password = ""  # Leave empty to auto-generate
+prometheus_storage_size = "10Gi"
+grafana_storage_size = "5Gi"
 
 # Autoscaling Configuration
 enable_autoscaling = true

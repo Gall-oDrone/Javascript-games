@@ -32,10 +32,10 @@ module "vpc" {
   name         = "${var.project_name}-${local.environment}"
   cidr         = var.vpc_cidr
   environment  = local.environment
-  cluster_name = var.cluster_name  # Use cluster name directly
+  cluster_name = var.cluster_name
   
   # Optional: Configure NAT gateways based on environment
-  single_nat_gateway = local.environment == "dev" ? true : false  # Use single NAT in dev to save costs
+  single_nat_gateway = local.environment == "dev" ? true : false
   
   tags = local.tags
 }
@@ -45,9 +45,9 @@ module "eks" {
   source = "../../modules/eks"
   
   cluster_name        = var.cluster_name
-  kubernetes_version  = var.kubernetes_version  # Changed from cluster_version
+  kubernetes_version  = var.kubernetes_version
   vpc_id              = module.vpc.vpc_id
-  private_subnet_ids  = module.vpc.private_subnets  # Changed from subnet_ids
+  private_subnet_ids  = module.vpc.private_subnets
   
   # Node group configuration
   node_group_desired_size   = var.node_group_desired_size
@@ -67,23 +67,26 @@ module "eks" {
   tags        = local.tags
 }
 
-# Time delay to ensure EKS cluster is fully operational
-resource "time_sleep" "wait_for_eks" {
-  depends_on = [module.eks]
-  
-  create_duration = "90s"
-}
-
 # Null resource to ensure cluster is ready
 resource "null_resource" "wait_for_cluster" {
-  depends_on = [time_sleep.wait_for_eks]
-
+  depends_on = [module.eks]
+  
   provisioner "local-exec" {
-    command = "aws eks wait cluster-active --name ${var.cluster_name} --region ${var.aws_region}"
+    command = "sleep 30"
   }
 }
 
-# Addons Module - with proper configuration
+# Time delay to ensure EKS cluster is fully operational
+resource "time_sleep" "wait_for_eks" {
+  depends_on = [
+    module.eks,
+    null_resource.wait_for_cluster
+  ]
+  
+  create_duration = "60s"
+}
+
+# Addons Module - with proper configuration and dependencies
 module "addons" {
   source = "../../modules/addons"
   
@@ -104,6 +107,13 @@ module "addons" {
   # Chart versions
   aws_load_balancer_controller_chart_version = var.aws_load_balancer_controller_chart_version
   metrics_server_chart_version               = var.metrics_server_chart_version
+  
+  # Prometheus version 
+  enable_prometheus_stack = true  # or use a variable
+  prometheus_stack_chart_version = "51.3.0"
+
+  # Pass the native cluster addons
+  cluster_addons = local.cluster_addons
   
   tags = local.tags
   
@@ -152,5 +162,9 @@ module "application" {
   environment = local.environment
   tags        = local.tags
   
-  depends_on = [module.eks, module.addons]
+  depends_on = [
+    module.eks, 
+    module.addons,
+    time_sleep.wait_for_eks
+  ]
 }

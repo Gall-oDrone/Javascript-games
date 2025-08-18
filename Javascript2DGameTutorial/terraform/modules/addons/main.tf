@@ -171,6 +171,127 @@ resource "helm_release" "metrics_server" {
   provider = helm
 }
 
+# Generate random password if not provided
+resource "random_password" "grafana_admin" {
+  count   = var.enable_prometheus_stack && var.grafana_admin_password == "" ? 1 : 0
+  length  = 16
+  special = true
+}
+
+# Prometheus & Grafana Stack
+resource "helm_release" "kube_prometheus_stack" {
+  count = var.enable_prometheus_stack ? 1 : 0
+
+  name       = "kube-prometheus-stack"
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart      = "kube-prometheus-stack"
+  namespace  = "monitoring"
+  version    = var.prometheus_stack_chart_version
+
+  create_namespace = true
+  timeout         = 600
+
+  values = [
+    yamlencode({
+      prometheus = {
+        prometheusSpec = {
+          serviceMonitorSelectorNilUsesHelmValues = false
+          retention = "7d"
+          storageSpec = {
+            volumeClaimTemplate = {
+              spec = {
+                accessModes = ["ReadWriteOnce"]
+                resources = {
+                  requests = {
+                    storage = var.prometheus_storage_size
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      grafana = {
+        enabled = true
+        defaultDashboardsEnabled = true
+        adminPassword = var.grafana_admin_password != "" ? var.grafana_admin_password : try(random_password.grafana_admin[0].result, "admin")
+        persistence = {
+          enabled = true
+          size    = var.grafana_storage_size
+        }
+        ingress = var.enable_grafana_ingress ? {
+          enabled = true
+          ingressClassName = "alb"
+          annotations = {
+            "alb.ingress.kubernetes.io/scheme" = "internet-facing"
+            "alb.ingress.kubernetes.io/target-type" = "ip"
+            "alb.ingress.kubernetes.io/healthcheck-path" = "/api/health"
+          }
+          hosts = var.grafana_hostname != "" ? [var.grafana_hostname] : []
+          paths = ["/"]
+        } : {
+          enabled = false
+        }
+        service = {
+          type = var.enable_grafana_ingress ? "ClusterIP" : "LoadBalancer"
+        }
+      }
+      alertmanager = {
+        enabled = true
+        alertmanagerSpec = {
+          storage = {
+            volumeClaimTemplate = {
+              spec = {
+                accessModes = ["ReadWriteOnce"]
+                resources = {
+                  requests = {
+                    storage = "2Gi"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      # Disable components that overlap with metrics-server
+      kubeStateMetrics = {
+        enabled = true  # This is complementary, not overlapping
+      }
+      nodeExporter = {
+        enabled = true  # For node-level metrics
+      }
+      # Service monitors for scraping metrics
+      defaultRules = {
+        create = true
+      }
+      kubeApiServer = {
+        enabled = true
+      }
+      kubeControllerManager = {
+        enabled = false  # Often not accessible in EKS
+      }
+      kubeScheduler = {
+        enabled = false  # Often not accessible in EKS
+      }
+      kubeEtcd = {
+        enabled = false  # Not accessible in EKS
+      }
+    })
+  ]
+
+  dynamic "set" {
+    for_each = try(var.prometheus_stack_values, {})
+    content {
+      name  = set.key
+      value = set.value
+    }
+  }
+
+  depends_on = [
+    aws_eks_addon.this,
+    helm_release.metrics_server
+  ]
+}
 
 # IAM Role for Karpenter
 module "karpenter_irsa" {

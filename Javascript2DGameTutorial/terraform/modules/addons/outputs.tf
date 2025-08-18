@@ -15,6 +15,22 @@ output "metrics_server_enabled" {
   value       = var.enable_metrics_server
 }
 
+output "prometheus_stack_enabled" {
+  description = "Whether Prometheus stack is enabled"
+  value       = var.enable_prometheus_stack
+}
+
+output "grafana_admin_password" {
+  description = "Grafana admin password"
+  value       = var.enable_prometheus_stack ? (var.grafana_admin_password != "" ? var.grafana_admin_password : try(random_password.grafana_admin[0].result, "not-set")) : "not-enabled"
+  sensitive   = true
+}
+
+output "grafana_hostname" {
+  description = "Grafana hostname if ingress is enabled"
+  value       = var.enable_grafana_ingress ? var.grafana_hostname : ""
+}
+
 output "karpenter_enabled" {
   description = "Whether Karpenter is enabled"
   value       = var.enable_karpenter
