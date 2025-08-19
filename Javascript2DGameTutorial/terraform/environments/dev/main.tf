@@ -86,6 +86,32 @@ resource "time_sleep" "wait_for_eks" {
   create_duration = "60s"
 }
 
+# Default StorageClass for EBS volumes
+resource "kubernetes_storage_class" "ebs_gp2" {
+  metadata {
+    name = "gp2"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+  
+  storage_provisioner    = "ebs.csi.aws.com"
+  reclaim_policy        = "Delete"
+  volume_binding_mode   = "WaitForFirstConsumer"
+  allow_volume_expansion = true
+  
+  parameters = {
+    type = "gp2"
+    fsType = "ext4"
+    encrypted = "true"
+  }
+  
+  depends_on = [
+    module.eks,
+    time_sleep.wait_for_eks
+  ]
+}
+
 # Addons Module - with proper configuration and dependencies
 module "addons" {
   source = "../../modules/addons"
@@ -111,9 +137,8 @@ module "addons" {
   # Prometheus version 
   enable_prometheus_stack = true  # or use a variable
   prometheus_stack_chart_version = "51.3.0"
+  
 
-  # Pass the native cluster addons
-  cluster_addons = local.cluster_addons
   
   tags = local.tags
   

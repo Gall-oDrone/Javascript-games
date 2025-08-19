@@ -152,7 +152,7 @@ variable "aws_load_balancer_controller_chart_version" {
 variable "metrics_server_chart_version" {
   description = "Chart version for Metrics Server"
   type        = string
-  default     = "6.3.0"
+  default     = "6.2.12"
 }
 
 # Application Configuration

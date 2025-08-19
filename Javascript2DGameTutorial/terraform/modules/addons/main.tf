@@ -201,6 +201,7 @@ resource "helm_release" "kube_prometheus_stack" {
             volumeClaimTemplate = {
               spec = {
                 accessModes = ["ReadWriteOnce"]
+                storageClassName = "gp2" # or gp3 depending on what you have
                 resources = {
                   requests = {
                     storage = var.prometheus_storage_size
@@ -218,6 +219,7 @@ resource "helm_release" "kube_prometheus_stack" {
         persistence = {
           enabled = true
           size    = var.grafana_storage_size
+          storageClassName = "gp2"
         }
         ingress = var.enable_grafana_ingress ? {
           enabled = true
@@ -231,6 +233,10 @@ resource "helm_release" "kube_prometheus_stack" {
           paths = ["/"]
         } : {
           enabled = false
+          ingressClassName = ""
+          annotations = {}
+          hosts = []
+          paths = []
         }
         service = {
           type = var.enable_grafana_ingress ? "ClusterIP" : "LoadBalancer"
@@ -243,6 +249,7 @@ resource "helm_release" "kube_prometheus_stack" {
             volumeClaimTemplate = {
               spec = {
                 accessModes = ["ReadWriteOnce"]
+                storageClassName = "gp2"
                 resources = {
                   requests = {
                     storage = "2Gi"
@@ -288,7 +295,6 @@ resource "helm_release" "kube_prometheus_stack" {
   }
 
   depends_on = [
-    aws_eks_addon.this,
     helm_release.metrics_server
   ]
 }
