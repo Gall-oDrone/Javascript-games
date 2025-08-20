@@ -29,6 +29,25 @@ variable "owner" {
   default     = "game-dev-team"
 }
 
+variable "enable_prometheus_stack" {
+  description = "Enable Prometheus, Grafana, and Alertmanager stack"
+  type        = bool
+  default     = false
+}
+
+variable "prometheus_storage_size" {
+  description = "Storage size for Prometheus data"
+  type        = string
+  default     = "10Gi"
+}
+
+variable "grafana_storage_size" {
+  description = "Storage size for Grafana data"
+  type        = string
+  default     = "5Gi"
+}
+
+
 # EKS Cluster Configuration
 variable "cluster_name" {
   description = "Name of the EKS cluster"

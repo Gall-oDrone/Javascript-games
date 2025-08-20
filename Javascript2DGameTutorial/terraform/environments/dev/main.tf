@@ -15,6 +15,11 @@ locals {
     kube-proxy = {
       most_recent = true
     }
+    # ADD EBS CSI DRIVER HERE
+    aws-ebs-csi-driver = {
+      most_recent = true
+      service_account_role_arn = module.eks.ebs_csi_driver_iam_role_arn
+    }
   }
   
   tags = merge(
@@ -86,12 +91,12 @@ resource "time_sleep" "wait_for_eks" {
   create_duration = "60s"
 }
 
-# Default StorageClass for EBS volumes
-resource "kubernetes_storage_class" "ebs_gp2" {
+# Create a GP3 StorageClass (more cost-effective than GP2)
+resource "kubernetes_storage_class" "gp3" {
   metadata {
-    name = "gp2"
+    name = "gp3"
     annotations = {
-      "storageclass.kubernetes.io/is-default-class" = "true"
+      "storageclass.kubernetes.io/is-default-class" = "true"  # Make this the default
     }
   }
   
@@ -101,11 +106,12 @@ resource "kubernetes_storage_class" "ebs_gp2" {
   allow_volume_expansion = true
   
   parameters = {
-    type = "gp2"
-    fsType = "ext4"
+    type      = "gp3"
+    fsType    = "ext4"
     encrypted = "true"
   }
   
+  # Make sure this runs AFTER the EBS CSI driver is installed
   depends_on = [
     module.eks,
     time_sleep.wait_for_eks
@@ -134,18 +140,19 @@ module "addons" {
   aws_load_balancer_controller_chart_version = var.aws_load_balancer_controller_chart_version
   metrics_server_chart_version               = var.metrics_server_chart_version
   
-  # Prometheus version 
-  enable_prometheus_stack = true  # or use a variable
+  # Prometheus configuration - USE GP3 for all storage
+  enable_prometheus_stack = var.enable_prometheus_stack
   prometheus_stack_chart_version = "51.3.0"
-  
-
+  prometheus_storage_size = var.prometheus_storage_size
+  grafana_storage_size = var.grafana_storage_size
   
   tags = local.tags
   
   depends_on = [
     module.eks,
     time_sleep.wait_for_eks,
-    null_resource.wait_for_cluster
+    null_resource.wait_for_cluster,
+    kubernetes_storage_class.gp3  # Wait for GP3 StorageClass to be created
   ]
 }
 

@@ -201,7 +201,7 @@ resource "helm_release" "kube_prometheus_stack" {
             volumeClaimTemplate = {
               spec = {
                 accessModes = ["ReadWriteOnce"]
-                storageClassName = "gp2" # or gp3 depending on what you have
+                storageClassName = "gp3" # Changed from gp2 to gp3
                 resources = {
                   requests = {
                     storage = var.prometheus_storage_size
@@ -219,7 +219,7 @@ resource "helm_release" "kube_prometheus_stack" {
         persistence = {
           enabled = true
           size    = var.grafana_storage_size
-          storageClassName = "gp2"
+          storageClassName = "gp3"
         }
         ingress = var.enable_grafana_ingress ? {
           enabled = true
@@ -249,7 +249,7 @@ resource "helm_release" "kube_prometheus_stack" {
             volumeClaimTemplate = {
               spec = {
                 accessModes = ["ReadWriteOnce"]
-                storageClassName = "gp2"
+                storageClassName = "gp3"
                 resources = {
                   requests = {
                     storage = "2Gi"
