@@ -119,6 +119,12 @@ resource "kubernetes_ingress_v1" "game" {
       "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"     = "ip"
       "alb.ingress.kubernetes.io/healthcheck-path" = "/"
+      # Listen on both HTTP and HTTPS
+      "alb.ingress.kubernetes.io/listen-ports"     = "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
+
+      # ACM Certificate ARN
+      "alb.ingress.kubernetes.io/certificate-arn"  = var.acm_certificate_arn # Missing variable
+
     }
   }
 

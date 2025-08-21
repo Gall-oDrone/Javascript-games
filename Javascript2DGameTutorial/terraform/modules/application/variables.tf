@@ -144,6 +144,12 @@ variable "certificate_arn" {
   default     = ""
 }
 
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN for HTTPS ingress"
+  type        = string
+  default     = ""
+}
+
 # Health check configuration
 variable "liveness_probe_path" {
   description = "Path for liveness probe"

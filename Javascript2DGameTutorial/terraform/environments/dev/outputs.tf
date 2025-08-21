@@ -64,3 +64,18 @@ output "ebs_csi_driver_iam_role_arn" {
   description = "ARN of the EBS CSI Driver IAM role"
   value       = module.eks.ebs_csi_driver_iam_role_arn
 }
+
+output "acm_certificate_arn" {
+  description = "ARN of the ACM certificate for HTTPS"
+  value       = var.domain_name != "" ? aws_acm_certificate.game_certificate[0].arn : ""
+}
+
+output "domain_name" {
+  description = "Domain name for the application"
+  value       = var.domain_name
+}
+
+output "certificate_validation_records" {
+  description = "DNS records for certificate validation"
+  value       = var.domain_name != "" ? aws_route53_record.certificate_validation : {}
+}

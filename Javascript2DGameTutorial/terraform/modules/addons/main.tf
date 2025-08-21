@@ -96,6 +96,21 @@ resource "helm_release" "aws_load_balancer_controller" {
     value = "true"
   }
 
+  set {
+    name  = "enableShield"
+    value = "true"
+  }
+
+  set {
+    name  = "enableWafv2"
+    value = "false"
+  }
+
+  set {
+    name  = "defaultTags"
+    value = "{\"Environment\": \"${var.environment}\", \"ManagedBy\": \"terraform\"}"
+  }
+
   # Merge additional values if provided
   dynamic "set" {
     for_each = try(var.aws_load_balancer_controller_values, {})
