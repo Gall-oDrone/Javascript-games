@@ -107,8 +107,8 @@ resource "helm_release" "aws_load_balancer_controller" {
   }
 
   set {
-    name  = "defaultTags"
-    value = "{\"Environment\": \"${var.environment}\", \"ManagedBy\": \"terraform\"}"
+    name  = "tags"
+    value = "Environment=${var.environment},ManagedBy=terraform"
   }
 
   # Merge additional values if provided

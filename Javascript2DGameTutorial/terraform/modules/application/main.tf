@@ -82,16 +82,13 @@ resource "kubernetes_deployment" "game" {
   }
 }
 
-# Kubernetes Service
+# Kubernetes Service - Changed to ClusterIP for ALB
 resource "kubernetes_service" "game" {
   depends_on = [kubernetes_namespace.game]
 
   metadata {
     name      = "${var.app_name}-service"
     namespace = kubernetes_namespace.game.metadata[0].name
-    annotations = {
-      "service.beta.kubernetes.io/aws-load-balancer-type" = "nlb"
-    }
   }
 
   spec {
@@ -102,36 +99,60 @@ resource "kubernetes_service" "game" {
     port {
       port        = var.service_port
       target_port = var.container_port
+      protocol    = "TCP"
     }
 
-    type = "LoadBalancer"
+    # Changed from LoadBalancer to ClusterIP for ALB ingress
+    type = "ClusterIP"
   }
 }
 
-# Kubernetes Ingress
+# Kubernetes Ingress - Fixed configuration
 resource "kubernetes_ingress_v1" "game" {
   depends_on = [kubernetes_service.game]
 
   metadata {
     name      = "${var.app_name}-ingress"
     namespace = kubernetes_namespace.game.metadata[0].name
-    annotations = {
-      "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
-      "alb.ingress.kubernetes.io/target-type"     = "ip"
-      "alb.ingress.kubernetes.io/healthcheck-path" = "/"
-      # Listen on both HTTP and HTTPS
-      "alb.ingress.kubernetes.io/listen-ports"     = "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
-
-      # ACM Certificate ARN
-      "alb.ingress.kubernetes.io/certificate-arn"  = var.acm_certificate_arn # Missing variable
-
-    }
+    annotations = merge(
+      {
+        # Required ALB annotations
+        "kubernetes.io/ingress.class"               = "alb"
+        "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
+        "alb.ingress.kubernetes.io/target-type"     = "ip"
+        
+        # Health check configuration
+        "alb.ingress.kubernetes.io/healthcheck-path"            = "/"
+        "alb.ingress.kubernetes.io/healthcheck-interval-seconds" = "15"
+        "alb.ingress.kubernetes.io/healthcheck-timeout-seconds"  = "5"
+        "alb.ingress.kubernetes.io/healthy-threshold-count"      = "2"
+        "alb.ingress.kubernetes.io/unhealthy-threshold-count"    = "2"
+        "alb.ingress.kubernetes.io/success-codes"                = "200-399"
+        
+        # Group name for shared ALB
+        "alb.ingress.kubernetes.io/group.name" = "${var.app_name}-${var.environment}"
+        
+        # Tags
+        "alb.ingress.kubernetes.io/tags" = "Environment=${var.environment},Application=${var.app_name}"
+      },
+      # Only add HTTPS listeners if certificate is provided
+      var.acm_certificate_arn != "" ? {
+        "alb.ingress.kubernetes.io/listen-ports"     = "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
+        "alb.ingress.kubernetes.io/ssl-redirect"     = "443"
+        "alb.ingress.kubernetes.io/certificate-arn"  = var.acm_certificate_arn
+      } : {
+        "alb.ingress.kubernetes.io/listen-ports"     = "[{\"HTTP\": 80}]"
+      }
+    )
   }
 
   spec {
     ingress_class_name = "alb"
     
     rule {
+      # Add host if domain is provided
+      host = var.domain_name != "" ? var.domain_name : null
+      
       http {
         path {
           path      = "/"
@@ -144,6 +165,66 @@ resource "kubernetes_ingress_v1" "game" {
               }
             }
           }
+        }
+      }
+    }
+    
+    # Default backend for unmatched requests
+    default_backend {
+      service {
+        name = kubernetes_service.game.metadata[0].name
+        port {
+          number = var.service_port
+        }
+      }
+    }
+  }
+  
+  # Wait for the service to be ready
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Horizontal Pod Autoscaler (if enabled)
+resource "kubernetes_horizontal_pod_autoscaler_v2" "game" {
+  count = var.enable_autoscaling ? 1 : 0
+  
+  depends_on = [kubernetes_deployment.game]
+
+  metadata {
+    name      = "${var.app_name}-hpa"
+    namespace = kubernetes_namespace.game.metadata[0].name
+  }
+
+  spec {
+    scale_target_ref {
+      api_version = "apps/v1"
+      kind        = "Deployment"
+      name        = kubernetes_deployment.game.metadata[0].name
+    }
+
+    min_replicas = var.hpa_min_replicas
+    max_replicas = var.hpa_max_replicas
+
+    metric {
+      type = "Resource"
+      resource {
+        name = "cpu"
+        target {
+          type                = "Utilization"
+          average_utilization = var.hpa_cpu_target
+        }
+      }
+    }
+
+    metric {
+      type = "Resource"
+      resource {
+        name = "memory"
+        target {
+          type                = "Utilization"
+          average_utilization = var.hpa_memory_target
         }
       }
     }

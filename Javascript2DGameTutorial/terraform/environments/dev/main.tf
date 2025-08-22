@@ -128,6 +128,7 @@ module "addons" {
   oidc_provider_arn = module.eks.oidc_provider_arn
   vpc_id            = module.vpc.vpc_id
   aws_region        = var.aws_region
+  environment       = local.environment
   
   # Addon toggles
   enable_aws_load_balancer_controller = var.enable_aws_load_balancer_controller
