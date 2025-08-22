@@ -27,6 +27,83 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Function to wait for any Kubernetes resource to be ready
+wait_for_resource() {
+    local resource_type=$1  # e.g., "ingress", "service"
+    local resource_name=$2  # e.g., "javascript-2d-game-ingress"
+    local namespace=$3
+    local field_path=$4     # e.g., ".status.loadBalancer.ingress[0].hostname"
+    local max_wait=${5:-300}  # Default 5 minutes
+    
+    local elapsed=0
+    local interval=5
+    
+    print_info "Waiting for $resource_type/$resource_name to be ready..."
+    
+    while [ $elapsed -lt $max_wait ]; do
+        result=$(kubectl get $resource_type $resource_name -n $namespace -o jsonpath="$field_path" 2>/dev/null || echo "")
+        
+        if [ -n "$result" ]; then
+            print_success "$resource_type/$resource_name is ready: $result"
+            echo "$result"  # Return the result
+            return 0
+        fi
+        
+        sleep $interval
+        elapsed=$((elapsed + interval))
+        
+        if [ $((elapsed % 30)) -eq 0 ]; then
+            print_info "Still waiting... ($elapsed seconds elapsed)"
+        fi
+    done
+    
+    print_warning "Timeout waiting for $resource_type/$resource_name"
+    return 1
+}
+
+# Function to wait specifically for ALB to be ready
+wait_for_alb() {
+    local namespace=$1
+    local max_attempts=60  # 5 minutes (60 * 5 seconds)
+    local attempt=0
+    
+    print_info "⏳ Waiting for ALB to be provisioned (this may take 2-3 minutes)..."
+    
+    while [ $attempt -lt $max_attempts ]; do
+        # Try to get the ALB hostname from the ingress
+        LB_HOSTNAME=$(kubectl get ingress -n $namespace -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+        
+        if [ -n "$LB_HOSTNAME" ]; then
+            print_success "✅ ALB is ready! Hostname: $LB_HOSTNAME"
+            
+            # Wait a bit more for the ALB to be fully operational
+            print_info "Waiting 30 seconds for ALB to become fully operational..."
+            sleep 30
+            
+            # Test if the ALB is responding
+            print_info "Testing ALB connectivity..."
+            if curl -s -o /dev/null -w "%{http_code}" "http://$LB_HOSTNAME" | grep -q "200\|301\|302\|404"; then
+                print_success "✅ ALB is responding!"
+                echo "$LB_HOSTNAME"  # Return the hostname
+                return 0
+            else
+                print_warning "ALB created but not yet responding, waiting..."
+            fi
+        fi
+        
+        # Show progress
+        if [ $((attempt % 6)) -eq 0 ]; then  # Every 30 seconds
+            print_info "Still waiting for ALB... ($(($attempt * 5)) seconds elapsed)"
+        fi
+        
+        sleep 5
+        attempt=$((attempt + 1))
+    done
+    
+    print_warning "⚠️ Timeout waiting for ALB after 5 minutes"
+    return 1
+}
+
 # Function to check if Docker is installed
 check_docker() {
     if ! command -v docker &> /dev/null; then
@@ -188,17 +265,43 @@ print_info "📦 Stage 5: Final verification..."
 print_info "Checking pods..."
 kubectl get pods -n $NAMESPACE
 
-# Get service information
-print_info "🌐 Getting application URL..."
-SERVICE_TYPE=$(kubectl get svc -n $NAMESPACE -o jsonpath='{.items[0].spec.type}' 2>/dev/null || echo "")
-
-if [ "$SERVICE_TYPE" == "LoadBalancer" ]; then
-    LB_HOSTNAME=$(kubectl get svc -n $NAMESPACE -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+# Wait for ALB using the dedicated function
+LB_HOSTNAME=$(wait_for_alb "$NAMESPACE")
+if [ $? -eq 0 ] && [ -n "$LB_HOSTNAME" ]; then
+    print_success "✅ Application is fully deployed and accessible!"
+    print_success "🌐 Application URL: http://$LB_HOSTNAME"
+    
+    # Perform a final health check
+    print_info "Performing final health check..."
+    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$LB_HOSTNAME" 2>/dev/null || echo "000")
+    
+    case $HTTP_STATUS in
+        200|301|302)
+            print_success "✅ Application is healthy (HTTP $HTTP_STATUS)"
+            ;;
+        404)
+            print_warning "⚠️ ALB is responding but application might not be serving content (HTTP 404)"
+            ;;
+        000)
+            print_warning "⚠️ Could not connect to ALB (DNS might still be propagating)"
+            ;;
+        *)
+            print_warning "⚠️ Unexpected HTTP status: $HTTP_STATUS"
+            ;;
+    esac
+else
+    print_warning "ALB provisioning timed out or failed"
+    
+    # Alternative: Try using the generic wait function for the ingress
+    print_info "Attempting alternative wait method..."
+    INGRESS_NAME="${var.project_name}-${local.environment}-ingress"
+    LB_HOSTNAME=$(wait_for_resource "ingress" "$INGRESS_NAME" "$NAMESPACE" ".status.loadBalancer.ingress[0].hostname" 60)
+    
     if [ -n "$LB_HOSTNAME" ]; then
-        print_success "✅ Application URL: http://$LB_HOSTNAME"
+        print_success "✅ Found ALB hostname: http://$LB_HOSTNAME"
     else
-        print_warning "Load balancer hostname not ready yet. Check with:"
-        echo "kubectl get svc -n $NAMESPACE"
+        print_warning "Could not get ALB hostname. Check manually with:"
+        echo "  kubectl get ingress -n $NAMESPACE"
     fi
 fi
 

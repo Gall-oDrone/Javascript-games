@@ -10,7 +10,7 @@ output "ecr_repository_name" {
 
 output "load_balancer_hostname" {
   description = "Hostname of the load balancer"
-  value       = kubernetes_service.game.status[0].load_balancer[0].ingress[0].hostname
+  value       = try(kubernetes_service.game.status[0].load_balancer[0].ingress[0].hostname, "")
 }
 
 output "acm_certificate_arn" {
